@@ -3,6 +3,7 @@ from components.go.game import GameUI
 
 def main(config):
     game = GameUI(config)
+    print("hallo")
     #game.play()
     game.play_test();
 
