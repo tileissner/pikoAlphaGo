@@ -6,11 +6,15 @@ import json
 import copy
 import codecs
 
+#from components.go import replayBuffer
+from components.go.trainingSet import TrainingSet
+
 BLACK, NONE, WHITE = range(-1, 2)
 
 def selfPlay(board_size, color):
     pos = createGame(board_size, color)
-    startGame(pos, color)
+    #trainingSet = startGame(pos, color)
+    return startGame(pos, color)
 
 def createGame(N, beginner):
     EMPTY_BOARD = np.zeros([5, 5], dtype=np.int8)
@@ -20,6 +24,7 @@ def createGame(N, beginner):
     return pos
 # Return pos object, which represents an entire game
 def startGame(pos, color):
+    trainingSet = []
     while not pos.is_game_over():
         print(pos.board)
         randomNum = random.choice(range(pos.all_legal_moves().size))
@@ -28,6 +33,7 @@ def startGame(pos, color):
             if not (pos.is_move_legal(coords.from_flat(randomNum)), pos.to_play):
                 randomNum = random.choice(range(pos.all_legal_moves().size))
         print(str(color) + " (" + getPlayerName(color) + ") am Zug")
+        currentColor = color
         print("Random Number: " + str(randomNum))
         if (color == WHITE):
             pos = pos.play_move(coords.from_flat(randomNum), WHITE, False)
@@ -35,16 +41,24 @@ def startGame(pos, color):
         elif (color == BLACK):
             pos = pos.play_move(coords.from_flat(randomNum), BLACK, False)
             color = WHITE
+        #TODO: hier ggf. numpy array direkt in normales array umwandeln
+        t = TrainingSet(pos.board, getMockProbabilities(pos), currentColor)
+        print("asdf")
+        trainingSet.append(t)
 
+    #update winner when game is finished for all experiences in this single game
+    for t in trainingSet:
+        t.updateWinner(pos.result())
     print(pos.result())
     print(pos.result_string())
-    writeFinalGamestateAsJSON(pos)
-    return pos
+    #replayBuffer.addToReplayBuffer(trainingSet)
+    #return pos
+    return trainingSet
 
-def getGameState(pos):
-
-
-    return
+def createJsonObject(trainingSet):
+    jsonObject = {}
+    for t in trainingSet:
+        jsonObject.update
 
 
 def writeFinalGamestateAsJSON(pos):
@@ -66,6 +80,17 @@ def getPlayerName(color):
     else:
         return "FAIL"
 
+def getMockProbabilities(pos):
+    probabilities = {}
+    test = pos.all_legal_moves()
+    print(pos.all_legal_moves())
+    for i in range(0, pos.all_legal_moves().size):
+        if i != 0:
+            probabilities.update({i: random.random()})
+        else:
+            probabilities.update({i: 0.0})
+
+    return probabilities
 
 
 class WriteablePosition():
