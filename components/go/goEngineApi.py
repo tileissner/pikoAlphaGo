@@ -3,8 +3,6 @@ import components.go.coords as coords
 import numpy as np
 import random
 import json
-import copy
-import codecs
 
 #from components.go import replayBuffer
 from components.go.trainingSet import TrainingSet
@@ -42,30 +40,24 @@ def startGame(pos, color):
             pos = pos.play_move(coords.from_flat(randomNum), BLACK, False)
             color = WHITE
         #TODO: hier ggf. numpy array direkt in normales array umwandeln
-        t = TrainingSet(pos.board, getMockProbabilities(pos), currentColor)
-        print("asdf")
-        trainingSet.append(t)
+        newTrainingSet = TrainingSet(pos.board, getMockProbabilities(pos), currentColor)
+        trainingSet.append(newTrainingSet)
 
     #update winner when game is finished for all experiences in this single game
-    for t in trainingSet:
-        t.updateWinner(pos.result())
+    for newTrainingSet in trainingSet:
+        newTrainingSet.updateWinner(pos.result())
     print(pos.result())
     print(pos.result_string())
     #replayBuffer.addToReplayBuffer(trainingSet)
     #return pos
     return trainingSet
 
-def createJsonObject(trainingSet):
-    jsonObject = {}
-    for t in trainingSet:
-        jsonObject.update
+# def createJsonObject(trainingSet):
+#     jsonObject = {}
+#     for t in trainingSet:
+#         jsonObject.update
 
 
-def writeFinalGamestateAsJSON(pos):
-    position = WriteablePosition(pos.board)
-    s = position.getPositionAsJSONString()
-    print("test")
-    return
 
 
 def getTrainingSets():
@@ -82,23 +74,20 @@ def getPlayerName(color):
 
 def getMockProbabilities(pos):
     probabilities = {}
-    test = pos.all_legal_moves()
-    print(pos.all_legal_moves())
+    #test = pos.all_legal_moves()
+    #print(pos.all_legal_moves())
+
+    #Performance Update: Without if statement?
+
     for i in range(0, pos.all_legal_moves().size):
         if i != 0:
             probabilities.update({i: random.random()})
         else:
             probabilities.update({i: 0.0})
 
+
     return probabilities
 
 
-class WriteablePosition():
-    def __init__(self, board=None):
-        self.board = board.tolist() #if board is not None else np.copy(EMPTY_BOARD)
-        # With a full history, self.n == len(self.recent) == num moves played
-
-    def getPositionAsJSONString(self):
-        return json.dumps(self.__dict__)
 
 
