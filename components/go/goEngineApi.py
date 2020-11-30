@@ -2,7 +2,7 @@ import components.go.go as go
 import components.go.coords as coords
 import numpy as np
 import random
-import json
+
 
 #from components.go import replayBuffer
 from components.go.trainingSet import TrainingSet
