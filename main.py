@@ -46,7 +46,7 @@ def main(args):
     if (len(sys.argv)) > 1:
         constants.configFileLocation = args[1]
     else:
-        constants.configFileLocation = "../config.yaml"
+        constants.configFileLocation = "config.yaml"
     #read config file and store it in constants.py
     configFile.readConfigFile(constants.configFileLocation)
 
