@@ -10,6 +10,9 @@ class TrainingSet:
     def updateWinner(self, winner):
         self.winner = winner
 
+    def getWinner(self):
+        return self.winner
+
     def saveTrainingSet(self):
         #TODO hier speichern
         return

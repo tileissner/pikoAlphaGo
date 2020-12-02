@@ -10,15 +10,21 @@ import numpy as np
 
 BLACK, NONE, WHITE = range(-1, 2)
 
+whitecount = 0
+blackcount = 0
 
 def startSelfPlayGame(file_name, board_size, color):
     # selfplay test with hardcoded beginner (black)
     trainingSet = goApi.selfPlay(board_size, color)
+
+
+
     with open(file_name, 'a', 1) as f:
         for t in trainingSet:
             #f.write(np.array2string(t.state) + t.probabilities + t.winner + t.color + os.linesep)
             #t.getAsJSON()
             #f.write(np.array2string(t.state) + str(t.winner) + str(t.color) + os.linesep)
+
             f.write(t.getAsJSON() + os.linesep)
 
 def startSelfPlay(thread_count, board_size, color):

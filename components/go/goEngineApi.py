@@ -46,6 +46,8 @@ def startGame(pos, color):
     #update winner when game is finished for all experiences in this single game
     for newTrainingSet in trainingSet:
         newTrainingSet.updateWinner(pos.result())
+
+    winner = pos.result()
     print(pos.result())
     print(pos.result_string())
     #replayBuffer.addToReplayBuffer(trainingSet)
