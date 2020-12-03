@@ -70,7 +70,7 @@ def main(args):
     configFile.readConfigFile(constants.configFileLocation)
     BLACK, NONE, WHITE = range(-1, 2)
     sp = selfplay()
-    sp.startSelfPlay(constants.thread_count, constants.board_size, WHITE)
+    sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
     #sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
     print("White: ", sp.winswhite)
     print("Black: ", sp.winsblack)

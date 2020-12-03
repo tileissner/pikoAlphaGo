@@ -16,7 +16,7 @@ def selfPlay(board_size, color):
 
 def createGame(N, beginner):
     EMPTY_BOARD = np.zeros([5, 5], dtype=np.int8)
-    pos = go.Position(EMPTY_BOARD, n=0, komi=7.5, caps=(0, 0),
+    pos = go.Position(EMPTY_BOARD, n=0, komi=0.0, caps=(0, 0),
                       lib_tracker=None, ko=None, recent=tuple(),
                       board_deltas=None, to_play=beginner)
     return pos
@@ -30,7 +30,7 @@ def startGame(pos, color):
             randomNum = random.choice(range(pos.all_legal_moves().size))
             if not (pos.is_move_legal(coords.from_flat(randomNum)), pos.to_play):
                 randomNum = random.choice(range(pos.all_legal_moves().size))
-        #print(str(color) + " (" + getPlayerName(color) + ") am Zug")
+        #print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
         currentColor = color
         #print("Random Number: " + str(randomNum))
         if (color == WHITE):

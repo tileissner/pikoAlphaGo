@@ -281,7 +281,7 @@ class LibertyTracker():
 
 
 class Position():
-    def __init__(self, board=None, n=0, komi=7.5, caps=(0, 0),
+    def __init__(self, board=None, n=0, komi=0.0, caps=(0, 0),
                  lib_tracker=None, ko=None, recent=tuple(),
                  board_deltas=None, to_play=BLACK):
         """
