@@ -24,15 +24,15 @@ def createGame(N, beginner):
 def startGame(pos, color):
     trainingSet = []
     while not pos.is_game_over():
-        print(pos.board)
+        #print(pos.board)
         randomNum = random.choice(range(pos.all_legal_moves().size))
         while (pos.all_legal_moves()[randomNum] == 0):
             randomNum = random.choice(range(pos.all_legal_moves().size))
             if not (pos.is_move_legal(coords.from_flat(randomNum)), pos.to_play):
                 randomNum = random.choice(range(pos.all_legal_moves().size))
-        print(str(color) + " (" + getPlayerName(color) + ") am Zug")
+        #print(str(color) + " (" + getPlayerName(color) + ") am Zug")
         currentColor = color
-        print("Random Number: " + str(randomNum))
+        #print("Random Number: " + str(randomNum))
         if (color == WHITE):
             pos = pos.play_move(coords.from_flat(randomNum), WHITE, False)
             color = BLACK
@@ -48,8 +48,8 @@ def startGame(pos, color):
         newTrainingSet.updateWinner(pos.result())
 
     winner = pos.result()
-    print(pos.result())
-    print(pos.result_string())
+    #print(pos.result())
+    #print(pos.result_string())
     #replayBuffer.addToReplayBuffer(trainingSet)
     #return pos
     return trainingSet
