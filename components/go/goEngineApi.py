@@ -6,6 +6,10 @@ import random
 
 #from components.go import replayBuffer
 from components.go.trainingSet import TrainingSet
+from components.mcts.goMCTS import GoGamestate
+from components.mcts.search import MonteCarloTreeSearch
+from components.mcts.nodes import TwoPlayersGameMonteCarloTreeSearchNode
+from utils import constants
 
 BLACK, NONE, WHITE = range(-1, 2)
 
@@ -26,6 +30,7 @@ def startGame(pos, color):
     while not pos.is_game_over():
         #print(pos.board)
         randomNum = random.choice(range(pos.all_legal_moves().size))
+        choseActionAccordingToMCTS(pos)
         while (pos.all_legal_moves()[randomNum] == 0):
             randomNum = random.choice(range(pos.all_legal_moves().size))
             if not (pos.is_move_legal(coords.from_flat(randomNum)), pos.to_play):
@@ -92,4 +97,47 @@ def getMockProbabilities(pos):
 
 
 
+def startGameMCTS():
 
+    trainingSet = []
+    while not pos.is_game_over():
+        #print(pos.board)
+        randomNum = random.choice(range(pos.all_legal_moves().size))
+        while (pos.all_legal_moves()[randomNum] == 0):
+            randomNum = random.choice(range(pos.all_legal_moves().size))
+            if not (pos.is_move_legal(coords.from_flat(randomNum)), pos.to_play):
+                randomNum = random.choice(range(pos.all_legal_moves().size))
+        #print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
+        currentColor = color
+        #print("Random Number: " + str(randomNum))
+        if (color == WHITE):
+            pos = pos.play_move(coords.from_flat(randomNum), WHITE, False)
+            color = BLACK
+        elif (color == BLACK):
+            pos = pos.play_move(coords.from_flat(randomNum), BLACK, False)
+            color = WHITE
+        #TODO: hier ggf. numpy array direkt in normales array umwandeln
+        newTrainingSet = TrainingSet(pos.board, getMockProbabilities(pos), currentColor)
+        trainingSet.append(newTrainingSet)
+
+    #update winner when game is finished for all experiences in this single game
+    for newTrainingSet in trainingSet:
+        newTrainingSet.updateWinner(pos.result())
+
+    winner = pos.result()
+    #print(pos.result())
+    #print(pos.result_string())
+    #replayBuffer.addToReplayBuffer(trainingSet)
+    #return pos
+    return trainingSet
+
+def choseActionAccordingToMCTS(pos):
+    state = pos.board
+    initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+
+    root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state,
+                                                  parent=None)
+
+    mcts = MonteCarloTreeSearch(root)
+    print("board hier")
+    print(mcts.best_action(1000).pos.board)
