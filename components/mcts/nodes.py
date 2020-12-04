@@ -1,3 +1,5 @@
+from random import random
+
 import numpy as np
 from collections import defaultdict
 from abc import ABC, abstractmethod
@@ -60,6 +62,7 @@ class MonteCarloTreeSearchNode(ABC):
         return len(self.untried_actions) == 0
 
     def best_child(self, c_param=1.4):
+        #choices weights = upper confidents bounds
         choices_weights = [
             (c.q / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n))
             for c in self.children
@@ -67,7 +70,9 @@ class MonteCarloTreeSearchNode(ABC):
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves):
-        return possible_moves[np.random.randint(len(possible_moves))]
+        indices = np.where(possible_moves == 1)
+        return np.random.choice(indices[0])
+
 
 
 class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
@@ -97,14 +102,14 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         return self._number_of_visits
 
     def expand(self):
-        action = self.untried_actions[-1] #Stack for tracking the possible actions at state
-        print("state hier")
-        print(self.state.board)
-        print("action")
+        print("------------------")
+        print(self.untried_actions)
+        action = len(self.untried_actions) - 1 #Stack for tracking the possible actions at state
+        self._untried_actions = np.delete(self.untried_actions, action)
+
         print(action)
-
-
-        next_state = self.state.move(from_flat(action))
+        print("------------------")
+        next_state = self.state.move(action)
         child_node = TwoPlayersGameMonteCarloTreeSearchNode(
             next_state, parent=self
         )

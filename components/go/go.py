@@ -379,10 +379,6 @@ class Position():
 
     def is_move_legal(self, move):
 
-        print("test \n")
-        print(move)
-        print(self.board[move])
-        print("test \n")
         'Checks that a move is on an empty space, not on ko, and not suicide'
         if move is None:
             return True

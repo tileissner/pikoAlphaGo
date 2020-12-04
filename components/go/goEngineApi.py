@@ -16,7 +16,8 @@ BLACK, NONE, WHITE = range(-1, 2)
 def selfPlay(board_size, color):
     pos = createGame(board_size, color)
     #trainingSet = startGame(pos, color)
-    return startGame(pos, color)
+    #return startGame(pos, color)
+    return startGameMCTS(pos, color)
 
 def createGame(N, beginner):
     EMPTY_BOARD = np.zeros([5, 5], dtype=np.int8)
@@ -28,9 +29,9 @@ def createGame(N, beginner):
 def startGame(pos, color):
     trainingSet = []
     while not pos.is_game_over():
-        #print(pos.board)
+        print(pos.board)
         randomNum = random.choice(range(pos.all_legal_moves().size))
-        choseActionAccordingToMCTS(pos)
+        #choseActionAccordingToMCTS(pos)
         while (pos.all_legal_moves()[randomNum] == 0):
             randomNum = random.choice(range(pos.all_legal_moves().size))
             if not (pos.is_move_legal(coords.from_flat(randomNum)), pos.to_play):
@@ -97,24 +98,21 @@ def getMockProbabilities(pos):
 
 
 
-def startGameMCTS():
+def startGameMCTS(pos, color):
 
     trainingSet = []
     while not pos.is_game_over():
-        #print(pos.board)
-        randomNum = random.choice(range(pos.all_legal_moves().size))
-        while (pos.all_legal_moves()[randomNum] == 0):
-            randomNum = random.choice(range(pos.all_legal_moves().size))
-            if not (pos.is_move_legal(coords.from_flat(randomNum)), pos.to_play):
-                randomNum = random.choice(range(pos.all_legal_moves().size))
+        print(pos.board)
+        actionNumber = choseActionAccordingToMCTS(pos)
+        print("gewählte aktion {}", actionNumber)
         #print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
         currentColor = color
         #print("Random Number: " + str(randomNum))
         if (color == WHITE):
-            pos = pos.play_move(coords.from_flat(randomNum), WHITE, False)
+            pos = pos.play_move(coords.from_flat(actionNumber), WHITE, False)
             color = BLACK
         elif (color == BLACK):
-            pos = pos.play_move(coords.from_flat(randomNum), BLACK, False)
+            pos = pos.play_move(coords.from_flat(actionNumber), BLACK, False)
             color = WHITE
         #TODO: hier ggf. numpy array direkt in normales array umwandeln
         newTrainingSet = TrainingSet(pos.board, getMockProbabilities(pos), currentColor)
@@ -139,5 +137,28 @@ def choseActionAccordingToMCTS(pos):
                                                   parent=None)
 
     mcts = MonteCarloTreeSearch(root)
-    print("board hier")
-    print(mcts.best_action(1000).pos.board)
+    resultChild = mcts.best_action(1000)
+    return getActionFromNode(resultChild, pos)
+
+def getActionFromNode(node, pos):
+
+    # print(pos.board)
+    # print("vs")
+    # print(node.state.board)
+
+    # for x in node.state.board.flatten():
+    #     print(x)
+    #TODO: Not sure ob die Funktion 100% einwandfrei läuft (wegen array indezes und so)
+    differences = []
+    for index, values in np.ndenumerate(node.state.board.flatten()):
+        if (pos.board.flatten()[index[0]] != values):
+            print("found " + str(index[0]))
+            differences.append(index[0])
+
+    #differences = np.where(pos.board!=node.state.board)
+    print(differences)
+    if len(differences) > 1:
+        raise ValueError("Differences after MCTS must not be more than one stone")
+    print(coords.from_flat(differences[0]))
+    #return coords.from_flat(differences[0])
+    return differences[0]
