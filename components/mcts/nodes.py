@@ -58,15 +58,24 @@ class MonteCarloTreeSearchNode(ABC):
     def backpropagate(self, reward):
         pass
 
+    # def is_fully_expanded(self):
+    #     return len(self.untried_actions) == 0
     def is_fully_expanded(self):
+        #TODO umändern auf prüfen, ob alles auf 0 ist (1 = gültiger zug, 0 = ungültig)
         return len(self.untried_actions) == 0
 
     def best_child(self, c_param=1.4):
+        #c_param = 0 --> exploitation
+        #c_param irgendwas = exploration
         #choices weights = upper confidents bounds
+
+        # Berechnung von u Wert nach Formel (--> Befragen des NN an dieser Stelle / hereingeben)
         choices_weights = [
             (c.q / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n))
             for c in self.children
         ]
+        # Zurückgeben der besten Aktion (enthalten in children) auf Basis d. berechneten u-wertes
+
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves):
@@ -105,7 +114,8 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         print("------------------")
         print(self.untried_actions)
         action = len(self.untried_actions) - 1 #Stack for tracking the possible actions at state
-        self._untried_actions = np.delete(self.untried_actions, action)
+        #self._untried_actions = np.delete(self.untried_actions, action)
+        self._untried_actions[action] = 0
 
         print(action)
         print("------------------")
@@ -120,6 +130,7 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         return self.state.is_game_over()
 
     def rollout(self):
+        #TODO ersetzen durch NN (es gib tkeine rollouts mehr -> stattdessen umschreiben zu NN funktion)
         current_rollout_state = self.state
         while not current_rollout_state.is_game_over():
             possible_moves = current_rollout_state.get_legal_actions()

@@ -21,15 +21,19 @@ class MonteCarloTreeSearch(object):
         -------
 
         """
+        # Actual MCTS Simulations (E
         for _ in range(0, simulations_number):
             v = self._tree_policy()
             reward = v.rollout()
+            #TODO reward sollte von NN kommen
+            #rewards = getEstimatedRewardFromNode(v)
             v.backpropagate(reward)
         # to select best child go for exploitation only
         return self.root.best_child(c_param=0.)
 
     def _tree_policy(self):
         """
+        node selection
         selects node to run rollout/playout for
 
         Returns
@@ -37,6 +41,7 @@ class MonteCarloTreeSearch(object):
 
         """
         current_node = self.root
+        # Go DOES NOT expand until terminal node
         while not current_node.is_terminal_node():
             if not current_node.is_fully_expanded():
                 return current_node.expand()
