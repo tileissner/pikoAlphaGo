@@ -14,6 +14,8 @@ print('TensorFlow version: {}'.format(tf.__version__))
 fashion_mnist = keras.datasets.fashion_mnist
 (train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
 
+print(type(train_images))
+
 # scale the values to 0.0 to 1.0
 train_images = train_images / 255.0
 test_images = test_images / 255.0
