@@ -60,6 +60,7 @@ class MonteCarloTreeSearchNode(ABC):
 
     # def is_fully_expanded(self):
     #     return len(self.untried_actions) == 0
+    #entweder terminal node oder schon alle childs / moves angehängt
     def is_fully_expanded(self):
         #TODO umändern auf prüfen, ob alles auf 0 ist (1 = gültiger zug, 0 = ungültig)
         return len(self.untried_actions) == 0
@@ -70,6 +71,7 @@ class MonteCarloTreeSearchNode(ABC):
         #choices weights = upper confidents bounds
 
         # Berechnung von u Wert nach Formel (--> Befragen des NN an dieser Stelle / hereingeben)
+        #TODO: Einbindung des NN + generell Formel anpassen (https://web.stanford.edu/~surag/posts/alphazero.html)
         choices_weights = [
             (c.q / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n))
             for c in self.children
@@ -114,8 +116,7 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         print("------------------")
         print(self.untried_actions)
         action = len(self.untried_actions) - 1 #Stack for tracking the possible actions at state
-        #self._untried_actions = np.delete(self.untried_actions, action)
-        self._untried_actions[action] = 0
+        self._untried_actions = np.delete(self.untried_actions, action)
 
         print(action)
         print("------------------")

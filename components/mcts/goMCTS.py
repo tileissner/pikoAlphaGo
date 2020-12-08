@@ -60,19 +60,17 @@ class GoGamestate(TwoPlayersAbstractGameState):
         elif np.issubdtype(move, np.integer):
             move = from_flat(move)
 
-
         if not self.pos.is_move_legal(move):
             raise ValueError(
                 "move {0} on board {1} is not legal".format(move, self.pos.board)
             )
-        # new_pos = np.copy(self.pos)
-        # new_pos[move.x_coordinate, move.y_coordinate] = move.value
-        # TODO passt das so?
-        # TODO warum wird das kopierT?
+
+        # TODO warum wird das kopierT? --> müsste so passen (siehe original)
         # https://github.com/int8/monte-carlo-tree-search/blob/master/mctspy/games/examples/tictactoe.py
         new_pos = self.pos.play_move(move)
 
         return GoGamestate(new_pos.board, self.board_size, self.pos.to_play * (-1), new_pos)
+
 
     def get_legal_actions(self):
         # indices = np.where(self.board == 0)
@@ -80,8 +78,17 @@ class GoGamestate(TwoPlayersAbstractGameState):
         #     TicTacToeMove(coords[0], coords[1], self.next_to_move)
         #     for coords in list(zip(indices[0], indices[1]))
         # ]
-        #ACHTUNG: gibt array zurueck, das auch die ILLEGALEN moves enthaelt, zb. [0, 1, 0 ...]
-        return self.pos.all_legal_moves()
+        # ACHTUNG: gibt array zurueck, das auch die ILLEGALEN moves enthaelt, zb. [0, 1, 0 ...]
+        return self.convertPosEngineLegalMovesToOnlyLegalMovesInFlat(self.pos)
+
+    def convertPosEngineLegalMovesToOnlyLegalMovesInFlat(self, pos):
+        legalMoves = []
+        counter = 0
+        for move in pos.all_legal_moves(): # go engine
+            if move == 1:
+                legalMoves.append(counter)
+            counter += 1
+        return legalMoves
 
 # wird vermutlich nicht gebraucht, da es nur die moves deklariert
 # class TicTacToeMove(AbstractGameAction):

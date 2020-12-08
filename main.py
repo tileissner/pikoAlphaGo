@@ -68,6 +68,8 @@ def main(args):
         constants.configFileLocation = "config.yaml"
     # read config file and store it in constants.py
     configFile.readConfigFile(constants.configFileLocation)
+
+
     BLACK, NONE, WHITE = range(-1, 2)
     sp = selfplay()
     sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)

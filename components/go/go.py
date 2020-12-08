@@ -392,6 +392,7 @@ class Position():
         return True
 
     def all_legal_moves(self):
+        #TODO ggf. vereinheitlichen mit mcts? aber vorsicht, nicht engine killen
         'Returns a np.array of size go.N**2 + 1, with 1 = legal, 0 = illegal'
         # by default, every move is legal
         legal_moves = np.ones([N, N], dtype=np.int8)

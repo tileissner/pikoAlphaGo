@@ -1,6 +1,6 @@
 class MonteCarloTreeSearch(object):
 
-    def __init__(self, node):
+    def __init__(self, node, pos, actions):
         """
         MonteCarloTreeSearchNode
         Parameters
@@ -8,6 +8,12 @@ class MonteCarloTreeSearch(object):
         node : mctspy.tree.nodes.MonteCarloTreeSearchNode
         """
         self.root = node
+
+
+        #TODO Stimtm das so von der initialisierung?
+        self.Q[pos.board, actions] = None
+        self.P[pos.board, actions] = None
+        self.v = None
 
     def best_action(self, simulations_number):
         """
@@ -25,8 +31,7 @@ class MonteCarloTreeSearch(object):
         for _ in range(0, simulations_number):
             v = self._tree_policy()
             reward = v.rollout()
-            #TODO reward sollte von NN kommen
-            #rewards = getEstimatedRewardFromNode(v)
+            #TODO schätzung für das beste kind muss von NN kommen
             v.backpropagate(reward)
         # to select best child go for exploitation only
         return self.root.best_child(c_param=0.)
@@ -41,6 +46,8 @@ class MonteCarloTreeSearch(object):
 
         """
         current_node = self.root
+        # TODO
+        # fuer alphazero anpassen (nciht bis zur leaf node runtergehen)
         # Go DOES NOT expand until terminal node
         while not current_node.is_terminal_node():
             if not current_node.is_fully_expanded():

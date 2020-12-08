@@ -45,7 +45,6 @@ def startGame(pos, color):
         elif (color == BLACK):
             pos = pos.play_move(coords.from_flat(randomNum), BLACK, False)
             color = WHITE
-        #TODO: hier ggf. numpy array direkt in normales array umwandeln
         newTrainingSet = TrainingSet(pos.board, getMockProbabilities(pos), currentColor)
         trainingSet.append(newTrainingSet)
 
@@ -136,7 +135,7 @@ def choseActionAccordingToMCTS(pos):
     root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state,
                                                   parent=None)
 
-    mcts = MonteCarloTreeSearch(root)
+    mcts = MonteCarloTreeSearch(root, pos, pos.all_legal_moves())
     resultChild = mcts.best_action(1000)
     return getActionFromNode(resultChild, pos)
 
