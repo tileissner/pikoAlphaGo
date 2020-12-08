@@ -1,64 +1,54 @@
-import tensorflow.keras
+import tensorflow as tf
 from tensorflow.python.keras.layers.convolutional import Conv2D
 from tensorflow.python.keras.layers.normalization import BatchNormalization
 from tensorflow.python.keras.layers.core import Activation
 from tensorflow.python.keras.layers.core import Flatten
 from tensorflow.python.keras.layers.core import Dense
 from tensorflow.keras.layers import Input
-from tensorflow.keras.models import Model
+from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.regularizers import *
 from tensorflow.keras.optimizers import *
 
 
-def create_model():
-	aliases = {}
-	Input_1 = Input(shape=(28, 28, 1), name='Input_1')
-	Conv2D_3 = Conv2D(name='Conv2D_3',filters= 32,kernel_size= 2)(Input_1)
-	BatchNormalization_1 = BatchNormalization(name='BatchNormalization_1')(Conv2D_3)
-	Activation_1 = Activation(name='Activation_1',activation= 'relu' )(BatchNormalization_1)
-	Conv2D_4 = Conv2D(name='Conv2D_4',filters= 32,kernel_size= 2)(Activation_1)
-	BatchNormalization_2 = BatchNormalization(name='BatchNormalization_2')(Conv2D_4)
-	Activation_2 = Activation(name='Activation_2',activation= 'relu' )(BatchNormalization_2)
-	Conv2D_5 = Conv2D(name='Conv2D_5',filters= 32,kernel_size= 2)(Activation_2)
-	BatchNormalization_3 = BatchNormalization(name='BatchNormalization_3')(Conv2D_5)
-	Activation_3 = Activation(name='Activation_3',activation= 'relu' )(BatchNormalization_3)
-	Conv2D_6 = Conv2D(name='Conv2D_6',filters= 32,kernel_size= 2)(Activation_3)
-	BatchNormalization_4 = BatchNormalization(name='BatchNormalization_4')(Conv2D_6)
-	Activation_4 = Activation(name='Activation_4',activation= 'relu' )(BatchNormalization_4)
-	Conv2D_7 = Conv2D(name='Conv2D_7',filters= 32,kernel_size= 2)(Activation_4)
-	BatchNormalization_5 = BatchNormalization(name='BatchNormalization_5')(Conv2D_7)
-	Activation_5 = Activation(name='Activation_5',activation= 'relu' )(BatchNormalization_5)
-	Conv2D_9 = Conv2D(name='Conv2D_9',filters= 12,kernel_size= 1)(Activation_5)
-	BatchNormalization_7 = BatchNormalization(name='BatchNormalization_7')(Conv2D_9)
-	Activation_8 = Activation(name='Activation_8',activation= 'relu' )(BatchNormalization_7)
-	Flatten_2 = Flatten(name='Flatten_2')(Activation_8)
-	Dense_2 = Dense(name='Dense_2',units= 256)(Flatten_2)
-	Dense_3 = Dense(name='Dense_3',units= 1,activation= 'tanh' )(Dense_2)
-	Conv2D_8 = Conv2D(name='Conv2D_8',filters= 2,kernel_size= 1)(Activation_5)
-	BatchNormalization_6 = BatchNormalization(name='BatchNormalization_6')(Conv2D_8)
-	Activation_7 = Activation(name='Activation_7',activation= 'relu' )(BatchNormalization_6)
-	Flatten_1 = Flatten(name='Flatten_1')(Activation_7)
-	Dense_18 = Dense(name='Dense_18',units= 362)(Flatten_1)
+class NeuralNetwork(Model):
 
-	model = Model([Input_1], [Dense_3, Dense_18])
-	return aliases, model
+	def __init__(self):
+		super(NeuralNetwork, self).__init__()
+		#TODO input shape fixen
+		self.input_ = Input(shape=())
+		self.conv1 = Conv2D(filters=32, kernel_size=2)(self.input_)
+		self.normalization1 = BatchNormalization(self.conv1)
+		self.activation1 = Activation(activation='relu')(self.normalization1)
+		self.conv2 = Conv2D(filters=32, kernel_size=2)(self.activation1)
+		self.normalization2 = BatchNormalization(self.conv2)
+		self.activation2 = Activation(activation='relu')(self.normalization2)
+		self.conv3 = Conv2D(filters=32, kernel_size=2)(self.activation2)
+		self.normalization3 = BatchNormalization(self.conv3)
+		self.activation3 = Activation(activation='relu')(self.normalization3)
+		self.conv4 = Conv2D(filters=32, kernel_size=2)(self.activation3)
+		self.normalization4 = BatchNormalization(self.conv4)
+		self.activation4 = Activation(activation='relu')(self.normalization4)
+		self.conv5 = Conv2D(filters=32, kernel_size=2)(self.activation4)
+		self.normalization5 = BatchNormalization(self.conv5)
+		self.activation5 = Activation(activation='relu')(self.normalization5)
 
-def get_optimizer():
-	return SGD()
+		#value head
+		self.vh_conv = Conv2D(filters=1, kernel_size=1)(self.activation5)
+		self.vh_norm = BatchNormalization()(self.vh_conv)
+		self.vh_activation = Activation(activation='relu')(self.vh_norm)
+		self.vh_flatten = Flatten()(self.vh_activation)
+		self.vh_dense1 = Dense(units=256)(self.vh_flatten)
+		self.vh_dense2 = Dense(units=1, activation='tanh')(self.vh_dense1)
 
-def is_custom_loss_function():
-	return False
+		#policy head
+		self.ph_conv = Conv2D(filters=2, kernel_size=1)(self.activation5)
+		self.ph_norm = BatchNormalization()(self.ph_conv)
+		self.ph_activation = Activation(activation='relu')(self.ph_norm)
+		self.ph_flatten = Flatten()(self.ph_activation)
+		self.ph_dense = Dense(units=362)(self.ph_flatten)
 
-def get_loss_function():
-	return 'categorical_crossentropy'
-
-def get_batch_size():
-	return 32
-
-def get_num_epoch():
-	return 10
-
-"""
-def get_data_config():
-	return '{"mapping": {"Digit Label": {"type": "Categorical", "port": "OutputPort0", "shape": "", "options": {}}, "Image": {"type": "Image", "port": "InputPort0", "shape": "", "options": {"pretrained": "None", "Augmentation": false, "rotation_range": 0, "width_shift_range": 0, "height_shift_range": 0, "shear_range": 0, "horizontal_flip": false, "vertical_flip": false, "Scaling": 1, "Normalization": false, "Resize": false, "Width": 28, "Height": 28}}}, "numPorts": 1, "samples": {"training": 56000, "validation": 14000, "test": 0, "split": 1}, "dataset": {"name": "mnist", "type": "public", "samples": 70000}, "datasetLoadOption": "batch", "shuffle": true, "kfold": 1}'
-"""
+		#https://www.tensorflow.org/api_docs/python/tf/keras/Model
+		return Model(inputs=[self.input_], outputs=[self.vh_dense2, self.ph_dense])
+	
+model = NeuralNetwork()
+model.summary()
