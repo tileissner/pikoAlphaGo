@@ -131,7 +131,6 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         return self.state.is_game_over()
 
     def rollout(self):
-        #TODO ersetzen durch NN (es gib tkeine rollouts mehr -> stattdessen umschreiben zu NN funktion)
         current_rollout_state = self.state
         while not current_rollout_state.is_game_over():
             possible_moves = current_rollout_state.get_legal_actions()

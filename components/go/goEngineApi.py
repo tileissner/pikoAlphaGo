@@ -9,6 +9,7 @@ from components.go.trainingSet import TrainingSet
 from components.mcts.goMCTS import GoGamestate
 from components.mcts.search import MonteCarloTreeSearch
 from components.mcts.nodes import TwoPlayersGameMonteCarloTreeSearchNode
+from components.mcts.stanfordmcts import search
 from utils import constants
 
 BLACK, NONE, WHITE = range(-1, 2)
@@ -130,14 +131,19 @@ def startGameMCTS(pos, color):
 
 def choseActionAccordingToMCTS(pos):
     state = pos.board
-    initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
-
-    root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state,
-                                                  parent=None)
-
-    mcts = MonteCarloTreeSearch(root, pos, pos.all_legal_moves())
-    resultChild = mcts.best_action(1000)
+    search(state, pos, None)
     return getActionFromNode(resultChild, pos)
+
+# def choseActionAccordingToMCTS(pos):
+#     state = pos.board
+#     initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+#
+#     root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state,
+#                                                   parent=None)
+#
+#     mcts = MonteCarloTreeSearch(root, pos, pos.all_legal_moves())
+#     resultChild = mcts.best_action(1000)
+#     return getActionFromNode(resultChild, pos)
 
 def getActionFromNode(node, pos):
 
