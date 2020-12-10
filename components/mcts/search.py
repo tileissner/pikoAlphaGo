@@ -30,11 +30,11 @@ class MonteCarloTreeSearch(object):
         """
         # Actual MCTS Simulations (E
         for _ in range(0, simulations_number):
-            # v = self._tree_policy()
-            # reward = v.rollout()
-            # #TODO schätzung für das beste kind muss von NN kommen
-            # v.backpropagate(reward)
-            search_function(self.)
+            v = self._tree_policy()
+            reward = v.rollout()
+            #TODO schätzung für das beste kind muss von NN kommen
+            v.backpropagate(reward)
+            #search_function(self.)
         # to select best child go for exploitation only
         return self.root.best_child(c_param=0.)
 

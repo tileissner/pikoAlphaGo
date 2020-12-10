@@ -310,6 +310,15 @@ class Position():
                                                                                    0, N, N], dtype=np.int8)
         self.to_play = to_play
 
+    # def __hash__(self):
+    #     return hash(np.array(self.board).flatten().tolist())
+    # def __hash__(self):
+    #     return hash(self.toString())
+    #
+    #
+    # def __eq__(self, b):
+    #     return self.board == b.board
+
     def __deepcopy__(self, memodict={}):
         new_board = np.copy(self.board)
         new_lib_tracker = copy.deepcopy(self.lib_tracker)

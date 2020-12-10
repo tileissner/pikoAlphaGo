@@ -22,3 +22,12 @@ class TrainingSet:
     def getAsJSON(self):
         self.state = self.state.tolist()
         return json.dumps(self.__dict__)
+
+    def getBestActionFromProbabilities(self):
+        maxValue = 0
+        maxKey = 0
+        for key, value in self.probabilities.items():
+            if (value > maxValue):
+                maxValue = value
+                maxKey = key
+        return maxValue

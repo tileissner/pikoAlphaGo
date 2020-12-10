@@ -9,8 +9,8 @@ from components.go.trainingSet import TrainingSet
 from components.mcts.goMCTS import GoGamestate
 from components.mcts.search import MonteCarloTreeSearch
 from components.mcts.nodes import TwoPlayersGameMonteCarloTreeSearchNode
-from components.mcts.stanfordmcts import search
 from utils import constants
+from components.mcts.stanfordmcts import search
 
 BLACK, NONE, WHITE = range(-1, 2)
 
@@ -18,7 +18,8 @@ def selfPlay(board_size, color):
     pos = createGame(board_size, color)
     #trainingSet = startGame(pos, color)
     #return startGame(pos, color)
-    return startGameMCTS(pos, color)
+    #return startGameMCTS(pos, color)
+    return startGameStanfordMCTS(pos)
 
 def createGame(N, beginner):
     EMPTY_BOARD = np.zeros([5, 5], dtype=np.int8)
@@ -81,17 +82,21 @@ def getPlayerName(color):
         return "FAIL"
 
 def getMockProbabilities(pos):
-    probabilities = {}
-    #test = pos.all_legal_moves()
-    #print(pos.all_legal_moves())
+    #probabilities = {}
+    probabilities = []
 
     #Performance Update: Without if statement?
 
-    for i in range(0, pos.all_legal_moves().size):
-        if i != 0:
-            probabilities.update({i: random.random()})
+    #for i in range(0, pos.all_legal_moves().size):
+    index = 0
+    for move in pos.all_legal_moves():
+        if move == 1:
+            #probabilities.update({index: random.random()})
+            probabilities.append(random.random())
         else:
-            probabilities.update({i: 0.0})
+            #probabilities.update({index: 0.0})
+            probabilities.append(0.0)
+        index += 1
 
 
     return probabilities
@@ -129,21 +134,47 @@ def startGameMCTS(pos, color):
     #return pos
     return trainingSet
 
-def choseActionAccordingToMCTS(pos):
-    state = pos.board
-    search(state, pos, None)
-    return getActionFromNode(resultChild, pos)
+def startGameStanfordMCTS(pos):
+
+    trainingSet = []
+    while not pos.is_game_over():
+        for i in range(constants.mcts_simulations):
+            search(pos.board, pos, None)
+
+
+        newTraining = TrainingSet(pos.board, getMockProbabilities(pos), pos.to_play)
+        trainingSet.append(newTraining)
+
+        a = newTraining.getBestActionFromProbabilities()
+        print("gewählte aktion {}", a)
+        pos = pos.play_move(coords.from_flat(a))
+
+        print(pos.board)
+
+
+    #update winner when game is finished for all experiences in this single game
+    for t in trainingSet:
+        t.updateWinner(pos.result())
+
+    winner = pos.result()
+    print("winner: " + str(winner))
+    return trainingSet
 
 # def choseActionAccordingToMCTS(pos):
 #     state = pos.board
-#     initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
-#
-#     root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state,
-#                                                   parent=None)
-#
-#     mcts = MonteCarloTreeSearch(root, pos, pos.all_legal_moves())
-#     resultChild = mcts.best_action(1000)
+#     search(state, pos, None)
 #     return getActionFromNode(resultChild, pos)
+
+def choseActionAccordingToMCTS(pos):
+    state = pos.board
+    initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+
+    root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state,
+                                                  parent=None)
+
+    mcts = MonteCarloTreeSearch(root, pos, pos.all_legal_moves())
+    resultChild = mcts.best_action(1000)
+    return getActionFromNode(resultChild, pos)
 
 def getActionFromNode(node, pos):
 
