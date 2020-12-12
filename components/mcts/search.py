@@ -32,7 +32,7 @@ class MonteCarloTreeSearch(object):
         for _ in range(0, simulations_number):
             v = self._tree_policy()
             reward = v.rollout()
-            #TODO schätzung für das beste kind muss von NN kommen
+            #TODO schätzung für reward muss von NN kommen --> Wird hochpropagiert
             v.backpropagate(reward)
             #search_function(self.)
         # to select best child go for exploitation only
@@ -40,6 +40,9 @@ class MonteCarloTreeSearch(object):
 
     def search_function(self, state, game, nnet):
         v = self._tree_policy()
+        # Instead of Rollout: Pass v + q up along the search path
+        # Ask neural net for board state returned by self.treepolicy
+        # Except: Is terminal state, then propagate actual result
         reward = v.rollout()
         # TODO schätzung für das beste kind muss von NN kommen
         v.backpropagate(reward)
