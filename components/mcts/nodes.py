@@ -71,13 +71,19 @@ class MonteCarloTreeSearchNode(ABC):
         #choices weights = upper confidents bounds
 
         # Berechnung von u Wert nach Formel (--> Befragen des NN an dieser Stelle / hereingeben)
-        #TODO: Einbindung des NN + generell Formel anpassen (https://web.stanford.edu/~surag/posts/alphazero.html)
-        choices_weights = [
-            (c.q / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n))
-            for c in self.children
-        ]
-        # Zurückgeben der besten Aktion (enthalten in children) auf Basis d. berechneten u-wertes
+        #TODO: Verwendung der Knotenwerte die durch NN bereitgestellt werden + generell Formel anpassen (https://web.stanford.edu/~surag/posts/alphazero.html)
+        choices_weights = []
+        for c in self.children:
+            if c.n == 0:
+                c._number_of_visits = 1
+            choices_weights.append((c.q_value / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n)))
 
+        # choices_weights = [
+        #     (c.q_value / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n))
+        #     for c in self.children
+        # ]
+        # Zurückgeben der besten Aktion (enthalten in children) auf Basis d. berechneten u-wertes
+        print("test")
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves):
@@ -93,6 +99,12 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         self._number_of_visits = 0.
         self._results = defaultdict(int)
         self._untried_actions = None
+        self.q_value = 0.
+        self.p_distr = {}
+        self.winner = None
+        self.w_value = 0.
+
+
 
     @property
     # All Possible Moves --> Fill untried with lega actions.
@@ -106,26 +118,32 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
     def q(self):
         wins = self._results[self.parent.state.next_to_move]
         loses = self._results[-1 * self.parent.state.next_to_move]
-        return wins - loses
+        return self.w_value / self._number_of_visits
 
     @property
     def n(self):
         return self._number_of_visits
 
     def expand(self):
-        print("------------------")
+        #print(self.untried_actions)
+        print("untried actions")
         print(self.untried_actions)
         action = len(self.untried_actions) - 1 #Stack for tracking the possible actions at state
         self._untried_actions = np.delete(self.untried_actions, action)
 
-        print(action)
-        print("------------------")
         next_state = self.state.move(action)
         child_node = TwoPlayersGameMonteCarloTreeSearchNode(
             next_state, parent=self
         )
+        child_node._number_of_visits = 0
+        child_node.q_value = 0.0
+
+        #p und v werte werden gesetzt
         self.children.append(child_node)
         return child_node
+
+    def get_q_value(self):
+        return self.w_value / (self._number_of_visits + 1.0) # TODO: +1.0 noch unklar?
 
     def is_terminal_node(self):
         return self.state.is_game_over()
@@ -138,9 +156,17 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
             current_rollout_state = current_rollout_state.move(action)
         return current_rollout_state.game_result
 
-    def backpropagate(self, result):
+    def backpropagate(self, w_value):
+
         self._number_of_visits += 1.
-        self._results[result] += 1.
+        self.w_value = self.w_value + w_value
+
+
+        #self._results[result] += 1.
+
+        # TODO: Set correct Q-Value
+
+
         if self.parent:
-            self.parent.backpropagate(result)
+            self.parent.backpropagate(self.w_value)
 

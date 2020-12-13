@@ -18,8 +18,8 @@ def selfPlay(board_size, color):
     pos = createGame(board_size, color)
     #trainingSet = startGame(pos, color)
     #return startGame(pos, color)
-    #return startGameMCTS(pos, color)
-    return startGameStanfordMCTS(pos)
+    return startGameMCTS(pos, color)
+    #return startGameStanfordMCTS(pos)
 
 def createGame(N, beginner):
     EMPTY_BOARD = np.zeros([5, 5], dtype=np.int8)
@@ -166,14 +166,14 @@ def startGameStanfordMCTS(pos):
 #     return getActionFromNode(resultChild, pos)
 
 def choseActionAccordingToMCTS(pos):
-    state = pos.board
     initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
 
     root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state,
                                                   parent=None)
 
-    mcts = MonteCarloTreeSearch(root, pos, pos.all_legal_moves())
-    resultChild = mcts.best_action(1000)
+    mcts = MonteCarloTreeSearch(root)
+    #resultChild = mcts.best_action(1000)
+    resultChild = mcts.search_function(50)
     return getActionFromNode(resultChild, pos)
 
 def getActionFromNode(node, pos):

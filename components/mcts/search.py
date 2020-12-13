@@ -1,6 +1,12 @@
+from random import random
+
+
+from components.go import goEngineApi
+
+
 class MonteCarloTreeSearch(object):
 
-    def __init__(self, node, pos, actions):
+    def __init__(self, node):
         """
         MonteCarloTreeSearchNode
         Parameters
@@ -8,13 +14,6 @@ class MonteCarloTreeSearch(object):
         node : mctspy.tree.nodes.MonteCarloTreeSearchNode
         """
         self.root = node
-
-
-        #TODO Stimtm das so von der initialisierung?
-        self.Q[pos.board, actions] = None
-        self.P[pos.board, actions] = None
-        self.v = None
-        self.visitedNodes = []
 
     def best_action(self, simulations_number):
         """
@@ -38,14 +37,30 @@ class MonteCarloTreeSearch(object):
         # to select best child go for exploitation only
         return self.root.best_child(c_param=0.)
 
-    def search_function(self, state, game, nnet):
-        v = self._tree_policy()
-        # Instead of Rollout: Pass v + q up along the search path
-        # Ask neural net for board state returned by self.treepolicy
-        # Except: Is terminal state, then propagate actual result
-        reward = v.rollout()
-        # TODO schätzung für das beste kind muss von NN kommen
-        v.backpropagate(reward)
+    def search_function(self, simulations_number):
+        for _ in range(0, simulations_number):
+            v = self._tree_policy()
+            v.backpropagate(v.w_value)
+
+        return self.root.best_child(c_param=0.)
+
+            #TODO: Fall Terminal Node abfangen
+
+            # if v.is_terminal_node():
+            #     v.backpropagate(v.p_distr, v.q_value)
+            #     # backprop actual result else predicted result
+            #     return
+            # else:
+                #netz fragen
+
+        # #Check if returned Node = terminal node
+        #
+        # # Instead of Rollout: Pass v + q up along the search path
+        # # Ask neural net for board state returned by self.treepolicy
+        # # Except: Is terminal state, then propagate actual result
+        # reward = v.backpropagate(v.results)
+        # # TODO schätzung für das beste kind muss von NN kommen
+        # v.backpropagate(reward)
 
     def _tree_policy(self):
         """
@@ -58,15 +73,55 @@ class MonteCarloTreeSearch(object):
         """
         current_node = self.root
         # TODO
-        # fuer alphazero anpassen (nciht bis zur leaf node runtergehen)
-        # Go DOES NOT expand until terminal node
+        # fuer alphazero anpassen
+
         while not current_node.is_terminal_node():
-            if self.node not in self.visitedNodes:
-                self.visitedNodes.append(current_node)
+
+            # aktuelle knoten nehmen
+            # 1. prüfen ob er ncoh nicht besucht uwrde
+            #     1.1 NN um hilfe fragen -> P[s][a] und v
+            # 2. falls nicht -> alle kinder durchgehen "probieren"
+            #     2.1 und dann returnen (? stimmt das so ?)
+            # 3. neuer knoten = bestes kind
+            # 4. nächste schleifeniteration
+
+            # step 1
+            if current_node.n == 0:
+                #current_node.n += 1 #muesste beim backpropagaten erhohet werden
+                #TODO auf reale werte des NN aendern
+                current_node.winner = self.randomWinner()
+                current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos)
                 return current_node
+
+            # step 2
             if not current_node.is_fully_expanded():
-                return current_node.expand()
-            else:
-                current_node = current_node.best_child()
+
+                while not current_node.is_fully_expanded():
+                    current_node.expand()  # Setzen von q,n = 0
+
+                return current_node
+
+
+            # step 3 + 4
+            current_node = current_node.best_child() #best_child geht den schritt in das beste kind
+
+            # -- ALTER PART --
+            # # if self.node not in self.visitedNodes:
+            # #     self.visitedNodes.append(current_node)
+            # #     return current_node
+            # if current_node.n == 0:
+            #     return current_node
+            #
+            # #ausprobieren der kinder
+            # if not current_node.is_fully_expanded():
+            #     return current_node.expand()
+            # else:
+            #     current_node = current_node.best_child()
+
+
         return current_node
 
+
+
+    def randomWinner(self):
+        return 1 if random() < 0.5 else -1
