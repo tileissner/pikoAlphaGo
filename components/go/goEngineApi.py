@@ -108,16 +108,16 @@ def startGameMCTS(pos, color):
     trainingSet = []
     while not pos.is_game_over():
         print(pos.board)
-        actionNumber = choseActionAccordingToMCTS(pos)
-        print("gewählte aktion {}", actionNumber)
+        action = choseActionAccordingToMCTS(pos)
+        print("gewählte aktion ", action)
         #print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
         currentColor = color
         #print("Random Number: " + str(randomNum))
         if (color == WHITE):
-            pos = pos.play_move(coords.from_flat(actionNumber), WHITE, False)
+            pos = pos.play_move(action, WHITE, False)
             color = BLACK
         elif (color == BLACK):
-            pos = pos.play_move(coords.from_flat(actionNumber), BLACK, False)
+            pos = pos.play_move(action, BLACK, False)
             color = WHITE
         #TODO: hier ggf. numpy array direkt in normales array umwandeln
         newTrainingSet = TrainingSet(pos.board, getMockProbabilities(pos), currentColor)
@@ -168,12 +168,13 @@ def startGameStanfordMCTS(pos):
 def choseActionAccordingToMCTS(pos):
     initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
 
-    root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state,
+    root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state, move_from_parent=None,
                                                   parent=None)
 
     mcts = MonteCarloTreeSearch(root)
     #resultChild = mcts.best_action(1000)
     resultChild = mcts.search_function(50)
+    #TODO zurueckgegebenes kind (resultChild) ist der gleiche state wie root (alles o)
     return getActionFromNode(resultChild, pos)
 
 def getActionFromNode(node, pos):
@@ -192,9 +193,14 @@ def getActionFromNode(node, pos):
             differences.append(index[0])
 
     #differences = np.where(pos.board!=node.state.board)
-    print(differences)
+    #print(differences)
+    action = None
     if len(differences) > 1:
         raise ValueError("Differences after MCTS must not be more than one stone")
-    print(coords.from_flat(differences[0]))
+    if len(differences) == 0:
+        action = coords.from_flat(constants.board_size * constants.board_size) #pass wenn sich die spielstände nicht verändert haben
+        print("Achtung: Pass wurde ausgewählt, da die Spielstände sich nicht unterscheiden")
+    else:
+        action = coords.from_flat(differences[0])
     #return coords.from_flat(differences[0])
-    return differences[0]
+    return action
