@@ -92,7 +92,11 @@ def getMockProbabilities(pos):
     for move in pos.all_legal_moves():
         if move == 1:
             #probabilities.update({index: random.random()})
-            probabilities.append(random.random())
+            if index == (constants.board_size * constants.board_size):
+                #TODO fixen, sobald richtige werte da sind
+                probabilities.append(0.02)
+            else:
+                probabilities.append(random.random())
         else:
             #probabilities.update({index: 0.0})
             probabilities.append(0.0)
@@ -173,34 +177,36 @@ def choseActionAccordingToMCTS(pos):
 
     mcts = MonteCarloTreeSearch(root)
     #resultChild = mcts.best_action(1000)
-    resultChild = mcts.search_function(50)
-    #TODO zurueckgegebenes kind (resultChild) ist der gleiche state wie root (alles o)
-    return getActionFromNode(resultChild, pos)
+    resultChild = mcts.search_function(constants.mcts_simulations)
+    return coords.from_flat(resultChild.move_from_parent)
+    #return getActionFromNode(resultChild, pos)
 
-def getActionFromNode(node, pos):
-
-    # print(pos.board)
-    # print("vs")
-    # print(node.state.board)
-
-    # for x in node.state.board.flatten():
-    #     print(x)
-    #TODO: Not sure ob die Funktion 100% einwandfrei läuft (wegen array indezes und so)
-    differences = []
-    for index, values in np.ndenumerate(node.state.board.flatten()):
-        if (pos.board.flatten()[index[0]] != values):
-            print("found " + str(index[0]))
-            differences.append(index[0])
-
-    #differences = np.where(pos.board!=node.state.board)
-    #print(differences)
-    action = None
-    if len(differences) > 1:
-        raise ValueError("Differences after MCTS must not be more than one stone")
-    if len(differences) == 0:
-        action = coords.from_flat(constants.board_size * constants.board_size) #pass wenn sich die spielstände nicht verändert haben
-        print("Achtung: Pass wurde ausgewählt, da die Spielstände sich nicht unterscheiden")
-    else:
-        action = coords.from_flat(differences[0])
-    #return coords.from_flat(differences[0])
-    return action
+# def getActionFromNode(node, pos):
+# ''''funktion vermutlich trash, weil sich durch einen move viele felder verändern können'''''
+#     # print(pos.board)
+#     # print("vs")
+#     # print(node.state.board)
+#
+#     # for x in node.state.board.flatten():
+#     #     print(x)
+#     #TODO: Not sure ob die Funktion 100% einwandfrei läuft (wegen array indezes und so)
+#     differences = []
+#     for index, values in np.ndenumerate(node.state.board.flatten()):
+#         if (pos.board.flatten()[index[0]] != values):
+#             print("found " + str(index[0]))
+#             differences.append(index[0])
+#
+#     #differences = np.where(pos.board!=node.state.board)
+#     #print(differences)
+#     action = None
+#
+#     if len(differences) > 1:
+#         print("test")
+#         raise ValueError("Differences after MCTS must not be more than one stone")
+#     if len(differences) == 0:
+#         action = coords.from_flat(constants.board_size * constants.board_size) #pass wenn sich die spielstände nicht verändert haben
+#         print("Achtung: Pass wurde ausgewählt, da die Spielstände sich nicht unterscheiden")
+#     else:
+#         action = coords.from_flat(differences[0])
+#     #return coords.from_flat(differences[0])
+#     return action

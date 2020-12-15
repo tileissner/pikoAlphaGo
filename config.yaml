@@ -1,4 +1,4 @@
 board_size: 5
 location_replay_buffer: ''
-thread_count: 1
-mcts_simulations: 10
+thread_count: 50
+mcts_simulations: 500
