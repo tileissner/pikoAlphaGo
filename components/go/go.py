@@ -281,7 +281,7 @@ class LibertyTracker():
 
 
 class Position():
-    def __init__(self, board=None, n=0, komi=7.5, caps=(0, 0),
+    def __init__(self, board=None, n=0, komi=0.0, caps=(0, 0),
                  lib_tracker=None, ko=None, recent=tuple(),
                  board_deltas=None, to_play=BLACK):
         """
@@ -309,6 +309,15 @@ class Position():
         self.board_deltas = board_deltas if board_deltas is not None else np.zeros([
                                                                                    0, N, N], dtype=np.int8)
         self.to_play = to_play
+
+    # def __hash__(self):
+    #     return hash(np.array(self.board).flatten().tolist())
+    # def __hash__(self):
+    #     return hash(self.toString())
+    #
+    #
+    # def __eq__(self, b):
+    #     return self.board == b.board
 
     def __deepcopy__(self, memodict={}):
         new_board = np.copy(self.board)
@@ -378,6 +387,7 @@ class Position():
         return not potential_libs
 
     def is_move_legal(self, move):
+
         'Checks that a move is on an empty space, not on ko, and not suicide'
         if move is None:
             return True
@@ -391,6 +401,7 @@ class Position():
         return True
 
     def all_legal_moves(self):
+        #TODO ggf. vereinheitlichen mit mcts? aber vorsicht, nicht engine killen
         'Returns a np.array of size go.N**2 + 1, with 1 = legal, 0 = illegal'
         # by default, every move is legal
         legal_moves = np.ones([N, N], dtype=np.int8)

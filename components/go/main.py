@@ -28,27 +28,6 @@ while not pos.is_game_over():
         color = WHITE
 
 
-
-# pos=pos.play_move(coords.from_flat(0))
-# pos=pos.play_move(coords.from_flat(4))
-# pos=pos.play_move(coords.from_flat(2))
-# pos=pos.play_move(coords.from_flat(3))
-# pos=pos.play_move(coords.from_flat(1))
-# pos=pos.play_move(coords.from_flat(6))
-# pos=pos.play_move(coords.from_flat(8))
-# pos=pos.play_move(coords.from_flat(10))
-# pos=pos.play_move(coords.from_flat(7))
-# pos=pos.play_move(coords.from_flat(9))
-# pos=pos.play_move(coords.from_flat(5))
-# pos=pos.play_move(coords.from_flat(12))
-# pos=pos.play_move(coords.from_flat(16))
-# pos=pos.play_move(coords.from_flat(18))
-# pos=pos.play_move(coords.from_flat(13))
-# pos=pos.play_move(coords.from_flat(23))
-# pos=pos.play_move(coords.from_flat(15))
-# print(pos.board)
-# pos=pos.play_move(coords.from_flat(14))
-
 print(pos.is_game_over())
 print(pos.board)
 print("GAME OVER!")
