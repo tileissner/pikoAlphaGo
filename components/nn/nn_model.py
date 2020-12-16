@@ -9,9 +9,6 @@ from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.regularizers import *
 from tensorflow.keras.optimizers import *
 
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
 class NeuralNetwork(Model):
 
 	def __init__(self):
