@@ -40,6 +40,7 @@ class MonteCarloTreeSearch(object):
     def search_function(self, simulations_number):
         for _ in range(0, simulations_number):
             v = self._tree_policy()
+
             v.backpropagate(v.winner)
 
         return self.root.best_child(c_param=0.)
@@ -91,6 +92,7 @@ class MonteCarloTreeSearch(object):
                 #TODO auf reale werte des NN aendern
                 current_node.winner = self.randomWinner() #von NN
                 current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos) #von NN
+
                 return current_node
 
             # step 2
@@ -117,6 +119,12 @@ class MonteCarloTreeSearch(object):
             #     return current_node.expand()
             # else:
             #     current_node = current_node.best_child()
+
+        #außerhalb der while schleife
+        if current_node.is_terminal_node():
+            winner = current_node.state.game_result
+            current_node.winner = current_node.state.game_result
+            current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos)  # von NN
 
 
         return current_node

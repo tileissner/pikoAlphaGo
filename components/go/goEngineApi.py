@@ -94,7 +94,7 @@ def getMockProbabilities(pos):
             #probabilities.update({index: random.random()})
             if index == (constants.board_size * constants.board_size):
                 #TODO fixen, sobald richtige werte da sind
-                probabilities.append(0.02)
+                probabilities.append(0.00001)
             else:
                 probabilities.append(random.random())
         else:

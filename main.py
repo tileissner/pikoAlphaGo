@@ -35,16 +35,15 @@ class selfplay:
                 # f.write(np.array2string(t.state) + t.probabilities + t.winner + t.color + os.linesep)
                 # t.getAsJSON()
                 # f.write(np.array2string(t.state) + str(t.winner) + str(t.color) + os.linesep)
-
-
-                f.write(t.getAsJSON() + os.linesep)
+                f.write(t.getAsJSON() + "\n")
 
     def startSelfPlay(self, thread_count, board_size, color):
+        file_name = "replaybuffer.txt"
         threads = []
         for i in range(0, thread_count):
             # target = name for method that must be executed in thread
             threads.append(
-                threading.Thread(target=self.startSelfPlayGame, args=('replaybuffer.txt', board_size, color)))
+                threading.Thread(target=self.startSelfPlayGame, args=(file_name, board_size, color)))
             threads[-1].start()
         for t in threads:
             t.join()
@@ -69,11 +68,18 @@ def main(args):
     # read config file and store it in constants.py
     configFile.readConfigFile(constants.configFileLocation)
 
+    with open("replaybuffer.txt", 'a', 1) as f:
+        f.write("[")
 
     BLACK, NONE, WHITE = range(-1, 2)
     sp = selfplay()
     sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
     #sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
+
+    #append eckige klammern, damit gültiges json
+    with open("replaybuffer.txt", 'a', 1) as f:
+        f.write("]")
+
     print("White: ", sp.winswhite)
     print("Black: ", sp.winsblack)
 

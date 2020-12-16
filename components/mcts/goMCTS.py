@@ -40,8 +40,10 @@ class GoGamestate(TwoPlayersAbstractGameState):
         # Check position object
 
         # Game not over yet
+        #TODO: Representation of double pass = 0 or None?
         if self.pos.is_game_over():
-            return None
+            return 0
+            #return None
         elif self.pos.result() == 1:
             return 1
         elif self.pos.result() == -1:
