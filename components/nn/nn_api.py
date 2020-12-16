@@ -27,7 +27,7 @@ def load_data():
     move = []
     win = []
 
-    with open('replaybufferLegit.json') as json_file:
+    with open('replaybufferFlat.json') as json_file:
         data = json.load(json_file)
         # print(type(data[0]))
         # print(data[0])
@@ -41,20 +41,22 @@ def load_data():
 
     ALL_STATES = np.stack(states, axis=0)
     WINNER = np.stack(win, axis=0)
-    MOVES = np.stack(move, axis=0)
+    MOVES = np.array(move)
 
     ALL_STATES = ALL_STATES.reshape(ALL_STATES.shape[0], 5, 5, 1)
     # WINNER = WINNER.reshape(WINNER.shape[0], 5, 5, 1)
-    MOVES = MOVES.reshape(MOVES.shape[0], 5, 5, 1)
+    #MOVES = MOVES.reshape(MOVES.shape[0], 5, 5, 1)
 
+#%%
     ALL_STATES = np.float64(ALL_STATES)
     print(ALL_STATES.dtype)
 
     input_shape = ALL_STATES.shape
 
-    print("states: {}, winner: {}, moves: {} ".format(ALL_STATES.shape, WINNER.shape, MOVES.shape))
+    #print("states: {}, winner: {}, moves: {} ".format(ALL_STATES.shape, WINNER.shape, move.shape))
 
     return MOVES, WINNER, ALL_STATES, input_shape
+
 
 MOVES, WINNER, ALL_STATES, input_shape = load_data()
 
@@ -65,25 +67,21 @@ def create_net():
     #net.summary()
     return net
 
+
 net = create_net()
 
+
 def train_model(net, features, labels):
-    EPOCHS = 10
+    EPOCHS = 50
     print(EPOCHS, "test")
     net.fit(features, labels, epochs=EPOCHS)
     #test_loss, test_acc = model.evaluate(test)"""
+    net.save('models/model')
+
 
 train_model(net, ALL_STATES, [WINNER, MOVES])
 
-def save_model(net):
-    pass
-    #net.save("pathtosavedir")
 
 def load_model():
     pass
     #return load_model("path_to_saved_model")
-
-
-#net.train_model(net, FEATURES, WINNER)
-#model = nn_model.create_model()
-#nn_model.train_model(model)
