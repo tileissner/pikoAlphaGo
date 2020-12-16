@@ -20,9 +20,12 @@ class TrainingSet:
 
     #TODO: Object gets altered in the process. State is saved as list
     # not as np Array anymore. Solution: Inner class or deepcopy?
-    def getAsJSON(self):
+    def getAsJSON(self, lastElement):
         self.state = self.state.tolist()
-        return json.dumps(self.__dict__) + ","
+        if not lastElement:
+            return json.dumps(self.__dict__) + ","
+        else:
+            return json.dumps(self.__dict__)
         #return json.dumps(self.__dict__)
 
     def getBestActionFromProbabilities(self):

@@ -2,6 +2,7 @@ from random import random
 
 
 from components.go import goEngineApi
+from nn_api import NetworkAPI
 
 
 class MonteCarloTreeSearch(object):
@@ -90,8 +91,20 @@ class MonteCarloTreeSearch(object):
             if current_node.n == 0:
                 #current_node.n += 1 #muesste beim backpropagaten erhohet werden
                 #TODO auf reale werte des NN aendern
-                current_node.winner = self.randomWinner() #von NN
-                current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos) #von NN
+                # current_node.winner = self.randomWinner() #von NN
+                #current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos) #von NN
+                net_api = NetworkAPI()
+                net_api.model_load('/home/tim/Documents/uni/WS20/alphago/code/components/nn/models/model')
+                #print(net_api.getPredictionFromNN(current_node.state.board))
+                current_node.winner, current_node.p_distr = net_api.getPredictionFromNN(current_node.state.board)
+
+
+                #TODO muss mit richtigen werten ersetzt werden
+                if current_node.winner < 0:
+                    current_node.winner = -1
+                else:
+                    current_node.winner = 1
+                current_node.p_distr = goEngineApi.getSemiMockProbabilities(current_node.state.pos, current_node.p_distr)
 
                 return current_node
 

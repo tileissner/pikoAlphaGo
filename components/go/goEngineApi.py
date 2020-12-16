@@ -106,6 +106,24 @@ def getMockProbabilities(pos):
     return probabilities
 
 
+def getSemiMockProbabilities(pos, probs):
+    #probabilities = {}
+    probabilities = []
+    #Performance Update: Without if statement?
+
+    index = 0
+    for move in pos.all_legal_moves():
+        if move == 0:
+            probabilities.append(0.0)
+        else: #legal move
+            #probabilities.update({index: 0.0})
+            probabilities.append(abs(probs[0][index]))
+        index += 1
+
+
+    return probabilities
+
+
 
 def startGameMCTS(pos, color):
 

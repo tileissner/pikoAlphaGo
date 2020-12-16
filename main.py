@@ -2,13 +2,14 @@ import os
 import threading
 import time
 
+
 import utils.readConfigFile as configFile
 import components.go.goEngineApi as goApi
 import utils.constants as constants
 import sys
 import numpy as np
 
-
+from nn_api import NetworkAPI
 
 
 class selfplay:
@@ -31,14 +32,19 @@ class selfplay:
 
 
         with open(file_name, 'a', 1) as f:
+            index = 0
             for t in trainingSet:
                 # f.write(np.array2string(t.state) + t.probabilities + t.winner + t.color + os.linesep)
                 # t.getAsJSON()
                 # f.write(np.array2string(t.state) + str(t.winner) + str(t.color) + os.linesep)
-                f.write(t.getAsJSON() + "\n")
+                if index == (len(trainingSet) -1):
+                    f.write(t.getAsJSON(True) + "\n")
+                else:
+                    f.write(t.getAsJSON(False) + "\n")
+                index += 1
 
     def startSelfPlay(self, thread_count, board_size, color):
-        file_name = "replaybuffer.txt"
+        file_name = "replaybuffer.json"
         threads = []
         for i in range(0, thread_count):
             # target = name for method that must be executed in thread
@@ -49,7 +55,7 @@ class selfplay:
             t.join()
         # check what the heck the file had
         uniq_lines = set()
-        with open('replaybuffer.txt', 'r') as f:
+        with open('replaybuffer.json', 'r') as f:
             for l in f:
                 uniq_lines.add(l)
         # for u in uniq_lines:
@@ -68,7 +74,7 @@ def main(args):
     # read config file and store it in constants.py
     configFile.readConfigFile(constants.configFileLocation)
 
-    with open("replaybuffer.txt", 'a', 1) as f:
+    with open("replaybuffer.json", 'a') as f:
         f.write("[")
 
     BLACK, NONE, WHITE = range(-1, 2)
@@ -76,12 +82,21 @@ def main(args):
     sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
     #sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
 
+
+
     #append eckige klammern, damit gültiges json
-    with open("replaybuffer.txt", 'a', 1) as f:
+    with open("replaybuffer.json", 'a') as f:
         f.write("]")
+
 
     print("White: ", sp.winswhite)
     print("Black: ", sp.winsblack)
+
+    net_api = NetworkAPI()
+    net_api.load_data() #werte initialisiert
+    net_api.create_net()
+    net_api.train_model(net_api.ALL_STATES, [net_api.WINNER, net_api.MOVES])
+
 
 
     end = time.time()
