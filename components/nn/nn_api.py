@@ -1,7 +1,10 @@
+import os
+
 import pandas as pd
 import numpy as np
 import json
 import tensorflow as tf
+
 
 import nn_model
 
@@ -38,8 +41,8 @@ class NetworkAPI():
         move = []
         win = []
 
-
-        with open('replaybuffer.json') as json_file:
+        dirname = os.path.dirname(__file__)
+        with open(os.path.join(dirname, '../../replaybuffer.json')) as json_file:
             data = json.load(json_file)
             # print(type(data[0]))
             # print(data[0])
@@ -83,12 +86,19 @@ class NetworkAPI():
         print(EPOCHS, "test")
         self.net.fit(features, labels, epochs=EPOCHS)
         #test_loss, test_acc = model.evaluate(test)"""
-        self.net.save('models/model')
+        #self.net.save('models/model')
+        dirname = os.path.dirname(__file__)
+        self.net.save(os.path.join(dirname, 'models/model/'))
 
     #%%
-    def model_load(self, path):
-        self.net = tf.keras.models.load_model(path)
-        #self.net = tf.keras.models.load_model('models/model')
+    # def model_load(self, path):
+    #     self.net = tf.keras.models.load_model(path)
+    #     #self.net = tf.keras.models.load_model('models/model')
+    def model_load(self):
+        dirname = os.path.dirname(__file__)
+        filename = os.path.join(dirname, 'models/model/saved_model.pb')
+
+        self.net = tf.keras.models.load_model(os.path.join(dirname, 'models/model/'))
 
     def getPredictionFromNN(self, state):
         #print(type(self.net))

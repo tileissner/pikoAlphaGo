@@ -94,7 +94,7 @@ class MonteCarloTreeSearch(object):
                 # current_node.winner = self.randomWinner() #von NN
                 #current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos) #von NN
                 net_api = NetworkAPI()
-                net_api.model_load('/home/tim/Documents/uni/WS20/alphago/code/components/nn/models/model')
+                net_api.model_load()
                 #print(net_api.getPredictionFromNN(current_node.state.board))
                 current_node.winner, current_node.p_distr = net_api.getPredictionFromNN(current_node.state.board)
 
