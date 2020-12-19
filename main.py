@@ -9,7 +9,8 @@ import utils.constants as constants
 import sys
 import numpy as np
 
-from nn_api import NetworkAPI
+import components.nn.nn_api as nn_api
+
 
 
 class selfplay:
@@ -92,7 +93,7 @@ def main(args):
     print("White: ", sp.winswhite)
     print("Black: ", sp.winsblack)
 
-    net_api = NetworkAPI()
+    net_api = nn_api.NetworkAPI()
     net_api.load_data() #werte initialisiert
     net_api.create_net()
     net_api.train_model(net_api.ALL_STATES, [net_api.WINNER, net_api.MOVES])

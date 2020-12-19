@@ -6,7 +6,8 @@ import json
 import tensorflow as tf
 
 
-import nn_model
+import components.nn.nn_model as nn_model
+#import nn_model
 
 class NetworkAPI():
 

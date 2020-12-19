@@ -2,7 +2,7 @@ from random import random
 
 
 from components.go import goEngineApi
-from nn_api import NetworkAPI
+import components.nn.nn_api as nn_api
 
 
 class MonteCarloTreeSearch(object):
@@ -93,7 +93,7 @@ class MonteCarloTreeSearch(object):
                 #TODO auf reale werte des NN aendern
                 # current_node.winner = self.randomWinner() #von NN
                 #current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos) #von NN
-                net_api = NetworkAPI()
+                net_api = nn_api.NetworkAPI()
                 net_api.model_load()
                 #print(net_api.getPredictionFromNN(current_node.state.board))
                 current_node.winner, current_node.p_distr = net_api.getPredictionFromNN(current_node.state.board)
