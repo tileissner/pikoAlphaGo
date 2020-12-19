@@ -1,8 +1,7 @@
 from random import random
 
-
+import components.nn.nn_api as nn_api
 from components.go import goEngineApi
-from nn_api import NetworkAPI
 
 
 class MonteCarloTreeSearch(object):
@@ -16,7 +15,8 @@ class MonteCarloTreeSearch(object):
         """
         self.root = node
 
-    def best_action(self, simulations_number):
+    # ehemals best_action
+    def search_function(self, simulations_number):
         """
 
         Parameters
@@ -28,41 +28,13 @@ class MonteCarloTreeSearch(object):
         -------
 
         """
-        # Actual MCTS Simulations (E
-        for _ in range(0, simulations_number):
-            v = self._tree_policy()
-            reward = v.rollout()
-            #TODO schätzung für reward muss von NN kommen --> Wird hochpropagiert
-            v.backpropagate(reward)
-            #search_function(self.)
-        # to select best child go for exploitation only
-        return self.root.best_child(c_param=0.)
-
-    def search_function(self, simulations_number):
+        # TODO: Fall Terminal Node abfangen
         for _ in range(0, simulations_number):
             v = self._tree_policy()
 
             v.backpropagate(v.winner)
 
         return self.root.best_child(c_param=0.)
-
-            #TODO: Fall Terminal Node abfangen
-
-            # if v.is_terminal_node():
-            #     v.backpropagate(v.p_distr, v.q_value)
-            #     # backprop actual result else predicted result
-            #     return
-            # else:
-                #netz fragen
-
-        # #Check if returned Node = terminal node
-        #
-        # # Instead of Rollout: Pass v + q up along the search path
-        # # Ask neural net for board state returned by self.treepolicy
-        # # Except: Is terminal state, then propagate actual result
-        # reward = v.backpropagate(v.results)
-        # # TODO schätzung für das beste kind muss von NN kommen
-        # v.backpropagate(reward)
 
     def _tree_policy(self):
         """
@@ -74,8 +46,6 @@ class MonteCarloTreeSearch(object):
 
         """
         current_node = self.root
-        # TODO
-        # fuer alphazero anpassen
 
         while not current_node.is_terminal_node():
 
@@ -89,22 +59,21 @@ class MonteCarloTreeSearch(object):
 
             # step 1
             if current_node.n == 0:
-                #current_node.n += 1 #muesste beim backpropagaten erhohet werden
-                #TODO auf reale werte des NN aendern
+                # TODO auf reale werte des NN aendern
                 # current_node.winner = self.randomWinner() #von NN
-                #current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos) #von NN
-                net_api = NetworkAPI()
+                # current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos) #von NN
+                net_api = nn_api.NetworkAPI()
                 net_api.model_load()
-                #print(net_api.getPredictionFromNN(current_node.state.board))
+                # print(net_api.getPredictionFromNN(current_node.state.board))
                 current_node.winner, current_node.p_distr = net_api.getPredictionFromNN(current_node.state.board)
 
-
-                #TODO muss mit richtigen werten ersetzt werden
+                # TODO muss mit richtigen werten ersetzt werden
                 if current_node.winner < 0:
                     current_node.winner = -1
                 else:
                     current_node.winner = 1
-                current_node.p_distr = goEngineApi.getSemiMockProbabilities(current_node.state.pos, current_node.p_distr)
+                current_node.p_distr = goEngineApi.getSemiMockProbabilities(current_node.state.pos,
+                                                                            current_node.p_distr)
 
                 return current_node
 
@@ -116,9 +85,8 @@ class MonteCarloTreeSearch(object):
 
                 return current_node
 
-
             # step 3 + 4
-            current_node = current_node.best_child() #best_child geht den schritt in das beste kind
+            current_node = current_node.best_child()  # best_child geht den schritt in das beste kind
 
             # -- ALTER PART --
             # # if self.node not in self.visitedNodes:
@@ -133,17 +101,12 @@ class MonteCarloTreeSearch(object):
             # else:
             #     current_node = current_node.best_child()
 
-        #außerhalb der while schleife
+        # außerhalb der while schleife
         if current_node.is_terminal_node():
-            winner = current_node.state.game_result
             current_node.winner = current_node.state.game_result
             current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos)  # von NN
 
-
         return current_node
-
-
 
     def randomWinner(self):
         return 1 if random() < 0.5 else -1
-        #return random.random()
