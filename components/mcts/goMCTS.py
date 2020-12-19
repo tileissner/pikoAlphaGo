@@ -50,7 +50,6 @@ class GoGamestate(TwoPlayersAbstractGameState):
             return -1
 
         return
-        # return self.pos.isGameOver()
 
     def is_game_over(self):
         return self.pos.is_game_over()
@@ -66,13 +65,9 @@ class GoGamestate(TwoPlayersAbstractGameState):
             raise ValueError(
                 "move {0} on board {1} is not legal".format(move, self.pos.board)
             )
-
-        # TODO warum wird das kopierT? --> müsste so passen (siehe original)
-        # https://github.com/int8/monte-carlo-tree-search/blob/master/mctspy/games/examples/tictactoe.py
         new_pos = self.pos.play_move(move)
 
         return GoGamestate(new_pos.board, self.board_size, self.pos.to_play * (-1), new_pos)
-
 
     def get_legal_actions(self):
         # indices = np.where(self.board == 0)
@@ -92,16 +87,3 @@ class GoGamestate(TwoPlayersAbstractGameState):
             counter += 1
         return legalMoves
 
-# wird vermutlich nicht gebraucht, da es nur die moves deklariert
-# class TicTacToeMove(AbstractGameAction):
-#     def __init__(self, x_coordinate, y_coordinate, value):
-#         self.x_coordinate = x_coordinate
-#         self.y_coordinate = y_coordinate
-#         self.value = value
-#
-#     def __repr__(self):
-#         return "x:{0} y:{1} v:{2}".format(
-#             self.x_coordinate,
-#             self.y_coordinate,
-#             self.value
-#         )

@@ -1,16 +1,11 @@
-import os
+import sys
 import threading
 import time
 
-
-import utils.readConfigFile as configFile
 import components.go.goEngineApi as goApi
-import utils.constants as constants
-import sys
-import numpy as np
-
 import components.nn.nn_api as nn_api
-
+import utils.constants as constants
+import utils.readConfigFile as configFile
 
 
 class selfplay:
@@ -31,14 +26,13 @@ class selfplay:
         else:
             self.winswhite += 1
 
-
         with open(file_name, 'a', 1) as f:
             index = 0
             for t in trainingSet:
                 # f.write(np.array2string(t.state) + t.probabilities + t.winner + t.color + os.linesep)
                 # t.getAsJSON()
                 # f.write(np.array2string(t.state) + str(t.winner) + str(t.color) + os.linesep)
-                if index == (len(trainingSet) -1):
+                if index == (len(trainingSet) - 1):
                     f.write(t.getAsJSON(True) + "\n")
                 else:
                     f.write(t.getAsJSON(False) + "\n")
@@ -65,7 +59,6 @@ class selfplay:
 
 # main function of all sub-programs
 def main(args):
-
     print(args)
     start = time.time()
     if (len(sys.argv)) > 1:
@@ -81,24 +74,19 @@ def main(args):
     BLACK, NONE, WHITE = range(-1, 2)
     sp = selfplay()
     sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
-    #sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
+    # sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
 
-
-
-    #append eckige klammern, damit gültiges json
+    # append eckige klammern, damit gültiges json
     with open("replaybuffer.json", 'a') as f:
         f.write("]")
-
 
     print("White: ", sp.winswhite)
     print("Black: ", sp.winsblack)
 
     net_api = nn_api.NetworkAPI()
-    net_api.load_data() #werte initialisiert
+    net_api.load_data()  # werte initialisiert
     net_api.create_net()
     net_api.train_model(net_api.ALL_STATES, [net_api.WINNER, net_api.MOVES])
-
-
 
     end = time.time()
     print("Time elapsed: ", end - start)
