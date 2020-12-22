@@ -90,7 +90,7 @@ class MonteCarloTreeSearchNode(ABC):
         #     for c in self.children
         # ]
             # Zurückgeben der besten Aktion (enthalten in children) auf Basis d. berechneten u-wertes
-            return self.children[np.argmax(choices_weights)]  # , best_action
+        return self.children[np.argmax(choices_weights)]  # , best_action
 
 
 class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
