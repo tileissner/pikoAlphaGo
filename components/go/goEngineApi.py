@@ -1,14 +1,14 @@
 import random
 
-import numpy as np
-
 import components.go.coords as coords
 import components.go.go as go
+import numpy as np
 from components.go.trainingSet import TrainingSet
 from components.mcts.goMCTS import GoGamestate
 from components.mcts.nodes import TwoPlayersGameMonteCarloTreeSearchNode
 from components.mcts.search import MonteCarloTreeSearch
 from utils import constants
+
 
 BLACK, NONE, WHITE = range(-1, 2)
 
@@ -77,6 +77,35 @@ def getPlayerName(color):
         return "FAIL"
 
 
+def getMockRealProbabilities(pos):
+    #probabilities = []
+
+
+
+    # Performance Update: Without if statement?
+
+    # for i in range(0, pos.all_legal_moves().size):
+    validIndeces = []
+
+    index = 0
+    for move in pos.all_legal_moves():
+        if move == 1:
+            validIndeces.append(index)
+        index += 1
+    allMoveArray = pos.all_legal_moves()
+
+
+    allMoveArray = [float(item) for item in allMoveArray]
+    probabilities = np.random.dirichlet(np.ones(len(validIndeces)), size=1).flatten()
+    index = 0
+    probabilities = probabilities.tolist()
+    for i in range(len(allMoveArray)):
+        if allMoveArray[i]!=0:
+            allMoveArray[i] = probabilities[index]
+            index += 1
+
+    return allMoveArray
+
 def getMockProbabilities(pos):
     # probabilities = {}
     probabilities = []
@@ -119,7 +148,7 @@ def getSemiMockProbabilities(pos, probs):
 def startGameMCTS(pos, color):
     trainingSet = []
     while not pos.is_game_over():
-        print(pos.board)
+        #print(pos.board)
         action = choseActionAccordingToMCTS(pos)
         print("gewählte aktion ", action)
         # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v

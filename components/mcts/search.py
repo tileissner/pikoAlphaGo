@@ -60,20 +60,21 @@ class MonteCarloTreeSearch(object):
             # step 1
             if current_node.n == 0:
                 # TODO auf reale werte des NN aendern
-                # current_node.winner = self.randomWinner() #von NN
-                # current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos) #von NN
-                net_api = nn_api.NetworkAPI()
-                net_api.model_load()
+                current_node.winner = self.randomWinner() #von NN
+                current_node.p_distr = goEngineApi.getMockRealProbabilities(current_node.state.pos) #von NN
+                #net_api = nn_api.NetworkAPI()
+                #net_api.model_load()
                 # print(net_api.getPredictionFromNN(current_node.state.board))
-                current_node.winner, current_node.p_distr = net_api.getPredictionFromNN(current_node.state.board)
+                #current_node.winner, current_node.p_distr = net_api.getPredictionFromNN(current_node.state.board)
 
                 # TODO muss mit richtigen werten ersetzt werden
                 if current_node.winner < 0:
                     current_node.winner = -1
                 else:
                     current_node.winner = 1
-                current_node.p_distr = goEngineApi.getSemiMockProbabilities(current_node.state.pos,
-                                                                            current_node.p_distr)
+
+                #current_node.p_distr = goEngineApi.getSemiMockProbabilities(current_node.state.pos,
+                 #                                                           current_node.p_distr)
 
                 return current_node
 
