@@ -3,6 +3,9 @@ import random
 import components.go.coords as coords
 import components.go.go as go
 import numpy as np
+
+
+from components.nn.nn_api import NetworkAPI
 from components.go.trainingSet import TrainingSet
 from components.mcts.goMCTS import GoGamestate
 from components.mcts.nodes import TwoPlayersGameMonteCarloTreeSearchNode
@@ -147,9 +150,16 @@ def getSemiMockProbabilities(pos, probs):
 
 def startGameMCTS(pos, color):
     trainingSet = []
+
+    #Temoporärer Ladevorgang d Netzes
+
+    net_api = NetworkAPI()
+    net_api.model_load()
+
+
     while not pos.is_game_over():
         #print(pos.board)
-        action = choseActionAccordingToMCTS(pos)
+        action = choseActionAccordingToMCTS(pos, net_api)
         print("gewählte aktion ", action)
         # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
         currentColor = color
@@ -176,11 +186,11 @@ def startGameMCTS(pos, color):
     return trainingSet
 
 
-def choseActionAccordingToMCTS(pos):
+def choseActionAccordingToMCTS(pos, nn_api):
     initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
 
     root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state, move_from_parent=None,
                                                   parent=None)
-    mcts = MonteCarloTreeSearch(root)
+    mcts = MonteCarloTreeSearch(root, nn_api)
     resultChild = mcts.search_function(constants.mcts_simulations)
     return coords.from_flat(resultChild.move_from_parent)

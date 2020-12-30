@@ -15,13 +15,13 @@ class NeuralNetwork(Model):
 		#TODO input shape fixen
 		super(NeuralNetwork, self).__init__()
 		self.conv1 = Conv2D(filters=32, kernel_size=2, name='conv1')
-		#normalization1 = BatchNormalization(conv1)
+		self.normalization1 = BatchNormalization()
 		self.activation1 = Activation(activation='relu', name='act1')
 		self.conv2 = Conv2D(filters=32, kernel_size=2, name="conv2")
-		#normalization2 = BatchNormalization(conv2)
+		self.normalization2 = BatchNormalization()
 		self.activation2 = Activation(activation='relu', name="act2")
 		self.conv3 = Conv2D(filters=32, kernel_size=2, name="conv3")
-		#normalization3 = BatchNormalization(conv3)
+		self.normalization3 = BatchNormalization()
 		self.activation3 = Activation(activation='relu', name='act3')
 
 		"""
@@ -50,7 +50,7 @@ class NeuralNetwork(Model):
 		self.ph_norm = BatchNormalization(name='ph_norm')
 		self.ph_activation = Activation(activation='relu', name='ph_act')
 		self.ph_flatten = Flatten(name='ph_flat')
-		self.ph_dense = Dense(units=26, name='ph_out') #Units = Boardsize + 1 = N**2 + 1
+		self.ph_dense = Dense(units=26, name='ph_out', activation=tf.nn.softmax) #Units = Boardsize + 1 = N**2 + 1
 
 		"""
 		https://www.tensorflow.org/api_docs/python/tf/keras/Model
@@ -62,10 +62,13 @@ class NeuralNetwork(Model):
 
 	def call(self, inputs):  # create model
 		x = self.conv1(inputs)
+		x = self.normalization1(x)
 		x = self.activation1(x)
 		x = self.conv2(x)
+		x = self.normalization2(x)
 		x = self.activation2(x)
 		x = self.conv3(x)
+		x = self.normalization3(x)
 		x = self.activation3(x)
 
 		value = self.vh_conv(x)

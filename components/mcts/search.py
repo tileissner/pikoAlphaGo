@@ -6,14 +6,19 @@ from components.go import goEngineApi
 
 class MonteCarloTreeSearch(object):
 
-    def __init__(self, node):
+    def __init__(self, node, net_api):
         """
         MonteCarloTreeSearchNode
         Parameters
         ----------
         node : mctspy.tree.nodes.MonteCarloTreeSearchNode
         """
+
         self.root = node
+
+        self.net_api = net_api
+
+
 
     # ehemals best_action
     def search_function(self, simulations_number):
@@ -65,7 +70,8 @@ class MonteCarloTreeSearch(object):
                 #net_api = nn_api.NetworkAPI()
                 #net_api.model_load()
                 # print(net_api.getPredictionFromNN(current_node.state.board))
-                #current_node.winner, current_node.p_distr = net_api.getPredictionFromNN(current_node.state.board)
+
+                current_node.winner, current_node.p_distr = self.net_api.getPredictionFromNN(current_node.state.board)
 
                 # TODO muss mit richtigen werten ersetzt werden
                 if current_node.winner < 0:

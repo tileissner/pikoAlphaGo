@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras import optimizers
 
 import components.nn.nn_model as nn_model
 
@@ -74,13 +75,14 @@ class NetworkAPI():
         self.input_shape = input_shape
 
     def create_net(self):
+        self.optimizer = optimizers.Adam(learning_rate=0.001)
         self.net = nn_model.NeuralNetwork()
-        self.net.compile(optimizer='sgd', loss=['mse', 'categorical_crossentropy'])
+        self.net.compile(optimizer=self.optimizer, loss=['mse', 'categorical_crossentropy'])
         self.net.build(self.input_shape)
         # net.summary()
 
     def train_model(self, features, labels):
-        EPOCHS = 50
+        EPOCHS = 20
         print(EPOCHS, "test")
         self.net.fit(features, labels, epochs=EPOCHS)
         # test_loss, test_acc = model.evaluate(test)"""
@@ -107,8 +109,14 @@ class NetworkAPI():
         state = state.reshape(1, 5, 5, 1)
 
         winner, probs = self.net.predict(state)
+        winner = winner.item(0)
+        probs = probs.flatten().tolist()
         # print("winner: {} , probs: {}".format(winner, probs))
         return winner, probs
+
+
+
+
 
     # test_state = [[-1, -1, -1, -1, -1], [-1, -1, -1, 0, 0], [-1, -1, -1, -1, 1], [-1, 1, 0, -1, 0], [-1, -1, -1, -1, 0]]
     # test_state = [[-1, -1, -1, -1, -1], [1, -1, -1, -1, 0], [1, 1, -1, -1, -1], [1, 1, 1, -1, 1], [0, 1, 1, -1, 0]]
