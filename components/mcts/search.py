@@ -39,7 +39,7 @@ class MonteCarloTreeSearch(object):
 
             v.backpropagate(v.winner)
 
-        return self.root.best_child(c_param=0.)
+        return self.root.best_child(c_puct=0.)
 
     def _tree_policy(self):
         """
