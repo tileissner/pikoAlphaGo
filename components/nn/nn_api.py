@@ -100,6 +100,12 @@ class NetworkAPI():
 
         self.net = tf.keras.models.load_model(os.path.join(dirname, 'models/model/'))
 
+    def model_load(self, fileName):
+        dirname = os.path.dirname(__file__)
+        filename = os.path.join(dirname, 'models/model/' + fileName + '.pb')
+
+        self.net = tf.keras.models.load_model(os.path.join(dirname, 'models/model/'))
+
     def getPredictionFromNN(self, state):
         # print(type(self.net))
         # self.net.summary()

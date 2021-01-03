@@ -1,19 +1,48 @@
 import random
 
-import components.go.coords as coords
-import components.go.go as go
 import numpy as np
 
-
-from components.nn.nn_api import NetworkAPI
+import components.go.coords as coords
+import components.go.go as go
 from components.go.trainingSet import TrainingSet
 from components.mcts.goMCTS import GoGamestate
 from components.mcts.nodes import TwoPlayersGameMonteCarloTreeSearchNode
 from components.mcts.search import MonteCarloTreeSearch
+from components.nn.nn_api import NetworkAPI
+from components.player.player import Player
 from utils import constants
 
-
 BLACK, NONE, WHITE = range(-1, 2)
+
+
+def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
+    pos = createGame(board_size, color)
+    currentPlayerWins = 0
+    challengerPlayerWins = 0
+
+    currentPlayer = Player(WHITE, currentNetFileName)
+    challengerPlayer = Player(BLACK, challengerNetFileName)
+
+    for _ in range(0, constants.amount_evaluator_iterations):
+        # Zufällige Auswahl wer beginnt
+        color = randomStartPlayer()
+
+        winner = startGameEvaluation(pos, color, currentPlayer, challengerPlayer)
+        if winner == currentPlayer:
+            currentPlayerWins += 1
+        else:
+            challengerPlayerWins += 1
+
+    print(currentPlayer + " wins")
+    print(challengerPlayer + " wins")
+
+    # wenn 55% -> neues model
+    if challengerPlayer / constants.amount_evaluator_iterations > 0.55:
+        print("neues netz ist besser!")
+        return challengerPlayer.net
+    else:
+        print("neues netz bringt keine verbesserung")
+        return currentPlayer.net
 
 
 def selfPlay(board_size, color):
@@ -81,9 +110,7 @@ def getPlayerName(color):
 
 
 def getMockRealProbabilities(pos):
-    #probabilities = []
-
-
+    # probabilities = []
 
     # Performance Update: Without if statement?
 
@@ -97,17 +124,17 @@ def getMockRealProbabilities(pos):
         index += 1
     allMoveArray = pos.all_legal_moves()
 
-
     allMoveArray = [float(item) for item in allMoveArray]
     probabilities = np.random.dirichlet(np.ones(len(validIndeces)), size=1).flatten()
     index = 0
     probabilities = probabilities.tolist()
     for i in range(len(allMoveArray)):
-        if allMoveArray[i]!=0:
+        if allMoveArray[i] != 0:
             allMoveArray[i] = probabilities[index]
             index += 1
 
     return allMoveArray
+
 
 def getMockProbabilities(pos):
     # probabilities = {}
@@ -151,14 +178,13 @@ def getSemiMockProbabilities(pos, probs):
 def startGameMCTS(pos, color):
     trainingSet = []
 
-    #Temoporärer Ladevorgang d Netzes
+    # Temoporärer Ladevorgang d Netzes
 
     net_api = NetworkAPI()
     net_api.model_load()
 
-
     while not pos.is_game_over():
-        #print(pos.board)
+        # print(pos.board)
         action = choseActionAccordingToMCTS(pos, net_api)
         print("gewählte aktion ", action)
         # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
@@ -186,6 +212,34 @@ def startGameMCTS(pos, color):
     return trainingSet
 
 
+def startGameEvaluation(pos, color, currentPlayer, challengerPlayer):
+    while not pos.is_game_over():
+        print("gewählte aktion ", action)
+        # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
+        currentColor = color
+        # print("Random Number: " + str(randomNum))
+        if (color == WHITE):
+            action = choseActionAccordingToMCTS(pos, currentPlayer.net_api)
+            pos = pos.play_move(action, WHITE, False)
+            color = BLACK
+        elif (color == BLACK):
+            action = choseActionAccordingToMCTS(pos, challengerPlayer.net_api)
+            pos = pos.play_move(action, BLACK, False)
+            color = WHITE
+
+    # update winner when game is finished for all experiences in this single game
+
+    winner = pos.result()
+    if winner == currentPlayer.color:
+        return currentPlayer
+    else:
+        return challengerPlayer
+    # print(pos.result())
+    # print(pos.result_string())
+    # replayBuffer.addToReplayBuffer(trainingSet)
+    # return pos
+
+
 def choseActionAccordingToMCTS(pos, nn_api):
     initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
 
@@ -194,3 +248,7 @@ def choseActionAccordingToMCTS(pos, nn_api):
     mcts = MonteCarloTreeSearch(root, nn_api)
     resultChild = mcts.search_function(constants.mcts_simulations)
     return coords.from_flat(resultChild.move_from_parent)
+
+
+def randomStartPlayer():
+    return 1 if random() < 0.5 else -1
