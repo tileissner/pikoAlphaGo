@@ -62,7 +62,7 @@ class MonteCarloTreeSearchNode(ABC):
         # TODO umändern auf prüfen, ob alles auf 0 ist (1 = gültiger zug, 0 = ungültig)
         return len(self.untried_actions) == 0
 
-    def best_child(self, c_param=1.4):
+    def best_child(self, c_puct=4.0):
         # c_param = 0 --> exploitation
         # c_param irgendwas = exploration
         # choices weights = upper confidents bounds
@@ -82,7 +82,7 @@ class MonteCarloTreeSearchNode(ABC):
             # c._number_of_visits = 1
             # choices_weights.append((c.q_value / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n)))
             choices_weights.append(
-                c.q_value + c_param * self.p_distr[c.move_from_parent] * math.sqrt(children_visit_count / (1 + self.n)))
+                c.q_value + c_puct * self.p_distr[c.move_from_parent] * math.sqrt(children_visit_count / (1 + self.n)))
             # u = Q[s][a] + c_puct * P[a] * sqrt(sum(N[s])) / (1 + N[s][a])
 
         # choices_weights = [
@@ -164,8 +164,9 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         # if winner == None:
         #     winner = self.randomWinner()
 
-        self.q_value = (self._number_of_visits * self.q_value + winner) / (self._number_of_visits)
-
+        self.winner += winner
+        #self.q_value = (self._number_of_visits * self.q_value + winner) / (self._number_of_visits)
+        self.q_value = self.winner / (self._number_of_visits)
         # TODO: Set correct Q-Value
 
         if self.parent:

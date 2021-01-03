@@ -39,7 +39,7 @@ class MonteCarloTreeSearch(object):
 
             v.backpropagate(v.winner)
 
-        return self.root.best_child(c_param=0.)
+        return self.root.best_child(c_puct=0.)
 
     def _tree_policy(self):
         """
@@ -74,10 +74,10 @@ class MonteCarloTreeSearch(object):
                 current_node.winner, current_node.p_distr = self.net_api.getPredictionFromNN(current_node.state.board)
 
                 # TODO muss mit richtigen werten ersetzt werden
-                if current_node.winner < 0:
-                    current_node.winner = -1
-                else:
-                    current_node.winner = 1
+                # if current_node.winner < 0:
+                #     current_node.winner = -1
+                # else:
+                #     current_node.winner = 1
 
                 #current_node.p_distr = goEngineApi.getSemiMockProbabilities(current_node.state.pos,
                  #                                                           current_node.p_distr)
