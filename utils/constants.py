@@ -7,3 +7,4 @@ thread_count = None
 
 Q = None
 mcts_simulations = None
+amount_evaluator_iterations = None

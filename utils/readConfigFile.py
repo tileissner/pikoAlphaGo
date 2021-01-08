@@ -10,5 +10,6 @@ def readConfigFile(location):
             constants.location_replay_buffer = param_list['location_replay_buffer']
             constants.thread_count = param_list['thread_count']
             constants.mcts_simulations = param_list['mcts_simulations']
+            constants.amount_evaluator_iterations = param_list['amount_evaluator_iterations']
         except yaml.YAMLError as exc:
             print(exc)
