@@ -9,10 +9,10 @@ from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.regularizers import *
 from tensorflow.keras.optimizers import *
 
+
 class NeuralNetwork(Model):
 
 	def __init__(self):
-		#TODO input shape fixen
 		super(NeuralNetwork, self).__init__()
 		self.conv1 = Conv2D(filters=32, kernel_size=2, name='conv1')
 		self.normalization1 = BatchNormalization()
@@ -51,14 +51,6 @@ class NeuralNetwork(Model):
 		self.ph_activation = Activation(activation='relu', name='ph_act')
 		self.ph_flatten = Flatten(name='ph_flat')
 		self.ph_dense = Dense(units=26, name='ph_out', activation=tf.nn.softmax) #Units = Boardsize + 1 = N**2 + 1
-
-		"""
-		https://www.tensorflow.org/api_docs/python/tf/keras/Model
-		model = Model(inputs=[input_], outputs=[vh_dense2, ph_dense])
-		model.compile(optimizer='sgd', loss=['mse', 'categorical_cross_entropy'])
-		model.summary()
-		return model
-		"""
 
 	def call(self, inputs):  # create model
 		x = self.conv1(inputs)

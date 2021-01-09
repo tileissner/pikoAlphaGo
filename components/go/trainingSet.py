@@ -2,6 +2,7 @@ import json
 class TrainingSet:
 
     def __init__(self, state, probabilities, color):
+        #hier ein array von x letzten states (in listenform)
         self.state = state
         #self.probabilities = self.createProbability2DArray(probabilities)
         self.probabilities = probabilities

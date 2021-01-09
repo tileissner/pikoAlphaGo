@@ -6,10 +6,10 @@ import tensorflow as tf
 from tensorflow.keras import optimizers
 
 import components.nn.nn_model as nn_model
+import datetime
 
 
-
-class NetworkAPI():
+class NetworkAPI:
     ALL_STATES = None
     WINNER = None
     MOVES = None
@@ -25,18 +25,8 @@ class NetworkAPI():
 
         feature_names = column_names[:-1]
         label_name = column_names[-1]
-
-
-        #evtl format ändern für move, je nachdem ob cross-entropy mit jetzigem format klar kommt
-        #my guess: prolly not, sollte wsl einfach flat array sein, sodass index der move zahl entspricht
         """
 
-        # data = pd.read_json('replaybuffer.json', lines=True)
-
-        # %%
-        """
-        reads json objects from json file and converts them into numpy array
-        """
         states = []
         move = []
         win = []
@@ -44,15 +34,10 @@ class NetworkAPI():
         dirname = os.path.dirname(__file__)
         with open(os.path.join(dirname, '../../replaybuffer.json')) as json_file:
             data = json.load(json_file)
-            # print(type(data[0]))
-            # print(data[0])
             for line in range(len(data)):
-                # print(data[line])
                 states.append(data[line]['state'])
                 move.append(data[line]['probabilities'])
                 win.append(data[line]['winner'])
-            # for state in data['state']:
-            #     print(state)
 
         ALL_STATES = np.stack(states, axis=0)
         WINNER = np.stack(win, axis=0)
@@ -68,48 +53,51 @@ class NetworkAPI():
 
         input_shape = ALL_STATES.shape
 
-        # print("states: {}, winner: {}, moves: {} ".format(ALL_STATES.shape, WINNER.shape, move.shape))
         self.MOVES = MOVES
         self.WINNER = WINNER
         self.ALL_STATES = ALL_STATES
         self.input_shape = input_shape
 
     def create_net(self):
-        self.optimizer = optimizers.Adam(learning_rate=0.001)
+        #lr = 0.001 zu groß für sgd -> loss für probs geht auf ~360
+        self.optimizer = optimizers.Adam(learning_rate=0.001) #ändern auf sgd
         self.net = nn_model.NeuralNetwork()
         self.net.compile(optimizer=self.optimizer, loss=['mse', 'categorical_crossentropy'])
         self.net.build(self.input_shape)
-        # net.summary()
 
     def train_model(self, features, labels):
-        EPOCHS = 20
-        print(EPOCHS, "test")
-        self.net.fit(features, labels, epochs=EPOCHS)
+        EPOCHS = 150
+
+        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        #tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+        hist_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=self.log_weights(EPOCHS), log_dir=log_dir)
+        self.net.fit(features, labels, epochs=EPOCHS, callbacks=[hist_callback])
+
         # test_loss, test_acc = model.evaluate(test)"""
-        # self.net.save('models/model')
         dirname = os.path.dirname(__file__)
         self.net.save(os.path.join(dirname, 'models/model/'))
 
+
     # %%
-    # def model_load(self, path):
-    #     self.net = tf.keras.models.load_model(path)
-    #     #self.net = tf.keras.models.load_model('models/model')
-    def model_load(self):
-        dirname = os.path.dirname(__file__)
-        filename = os.path.join(dirname, 'models/model/saved_model.pb')
+    def log_weights(self, epochs):
+            writer = tf.summary.create_file_writer("/tmp/mylogs/eager")
 
-        self.net = tf.keras.models.load_model(os.path.join(dirname, 'models/model/'))
+            with writer.as_default():
+                for tf_var in self.net.trainable_weights:
+                    tf.summary.histogram(tf_var.name, tf_var.numpy(), step=epochs)
 
-    def model_load(self, fileName):
-        dirname = os.path.dirname(__file__)
-        filename = os.path.join(dirname, 'models/model/' + fileName + '.pb')
+
+    def model_load(self, fileName = None):
+        if fileName is None:
+            dirname = os.path.dirname(__file__)
+            filename = os.path.join(dirname, 'models/model/saved_model.pb')
+        else:
+            dirname = os.path.dirname(__file__)
+            filename = os.path.join(dirname, 'models/model/' + fileName + '.pb')
 
         self.net = tf.keras.models.load_model(os.path.join(dirname, 'models/model/'))
 
     def getPredictionFromNN(self, state):
-        # print(type(self.net))
-        # self.net.summary()
-        # TODO richtige werte muessen hier rein
         state = np.array(state)
         state = np.float64(state)
         state = state.reshape(1, 5, 5, 1)
@@ -117,19 +105,6 @@ class NetworkAPI():
         winner, probs = self.net.predict(state)
         winner = winner.item(0)
         probs = probs.flatten().tolist()
-        # print("winner: {} , probs: {}".format(winner, probs))
+        #print("winner: {} , probs: {}".format(winner, probs))
         return winner, probs
 
-
-
-
-
-    # test_state = [[-1, -1, -1, -1, -1], [-1, -1, -1, 0, 0], [-1, -1, -1, -1, 1], [-1, 1, 0, -1, 0], [-1, -1, -1, -1, 0]]
-    # test_state = [[-1, -1, -1, -1, -1], [1, -1, -1, -1, 0], [1, 1, -1, -1, -1], [1, 1, 1, -1, 1], [0, 1, 1, -1, 0]]
-    # test_state = [[1, 1, 1, 0, 0], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 0]]
-    # test_state = np.array(test_state)
-    # print(test_state.shape)
-    # test_state = test_state.reshape(1, 5, 5, 1)
-    # test_state = np.float64(test_state)
-    # print(test_state.shape)
-    # print(test_state)

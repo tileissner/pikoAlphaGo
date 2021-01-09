@@ -458,6 +458,7 @@ class Position():
         if color is None:
             color = self.to_play
 
+
         pos = self if mutate else copy.deepcopy(self)
 
         if c is None:
