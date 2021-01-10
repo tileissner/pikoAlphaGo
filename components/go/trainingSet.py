@@ -29,6 +29,27 @@ class TrainingSet:
             return json.dumps(self.__dict__)
         #return json.dumps(self.__dict__)
 
+    def getAsJSONWithPreviousStates(self, lastElement, previousStates):
+        currentState = self.state
+
+        backupState = self.state
+        self.state = []
+
+        # den aktuellen zustand als letztes anhaengen als 0tes element
+        self.state.append(currentState.tolist())
+
+        for previousState in previousStates:
+            print(type(previousState))
+            self.state.append(previousState.tolist())
+
+        if not lastElement:
+            returnValue = json.dumps(self.__dict__) + ","
+        else:
+            returnValue = json.dumps(self.__dict__)
+
+        self.state = backupState
+        return returnValue
+
     def getBestActionFromProbabilities(self):
         maxValue = 0
         maxKey = 0

@@ -60,13 +60,16 @@ class NetworkAPI:
 
     def create_net(self):
         #lr = 0.001 zu groß für sgd -> loss für probs geht auf ~360
-        self.optimizer = optimizers.Adam(learning_rate=0.001) #ändern auf sgd
+        #Adam vs SGD -> erst mal mit SGD für "einfaches" debugging und für abschließende optimierung dann mit Adam
+        #learning rate für sgd liegt zwischen 0.01 und 0.1 bei perfektem game buffer
+        #bei random buffer kleiner ~0.0001
+        self.optimizer = optimizers.SGD(learning_rate=0.0001)
         self.net = nn_model.NeuralNetwork()
         self.net.compile(optimizer=self.optimizer, loss=['mse', 'categorical_crossentropy'])
         self.net.build(self.input_shape)
 
     def train_model(self, features, labels):
-        EPOCHS = 150
+        EPOCHS = 300
 
         log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         #tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
