@@ -39,7 +39,6 @@ class TrainingSet:
         self.state.append(currentState.tolist())
 
         for previousState in previousStates:
-            print(type(previousState))
             self.state.append(previousState.tolist())
 
         if not lastElement:

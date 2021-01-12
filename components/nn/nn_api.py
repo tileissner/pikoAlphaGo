@@ -8,6 +8,8 @@ from tensorflow.keras import optimizers
 import components.nn.nn_model as nn_model
 import datetime
 
+from utils import constants
+
 
 class NetworkAPI:
     ALL_STATES = None
@@ -43,7 +45,8 @@ class NetworkAPI:
         WINNER = np.stack(win, axis=0)
         MOVES = np.array(move)
 
-        ALL_STATES = ALL_STATES.reshape(ALL_STATES.shape[0], 5, 5, 1)
+        # wieder auf 5 ändern an der letzten stelle wenn parents in der predcition enthalten
+        ALL_STATES = ALL_STATES.reshape(ALL_STATES.shape[0], 5, 5, 5)
         # WINNER = WINNER.reshape(WINNER.shape[0], 5, 5, 1)
         # MOVES = MOVES.reshape(MOVES.shape[0], 5, 5, 1)
 
@@ -100,12 +103,36 @@ class NetworkAPI:
 
         self.net = tf.keras.models.load_model(os.path.join(dirname, 'models/model/'))
 
-    def getPredictionFromNN(self, state):
-        state = np.array(state)
-        state = np.float64(state)
-        state = state.reshape(1, 5, 5, 1)
+    def getPredictionFromNN(self, state, parentStates, color):
 
-        winner, probs = self.net.predict(state)
+
+        colorArray = None
+        if color == -1:
+            colorArray = np.ones((constants.board_size, constants.board_size), dtype=int)
+        elif color == 1:
+            colorArray = np.zeros((constants.board_size, constants.board_size), dtype=int)
+
+        missingStates = constants.state_history_length - len(parentStates)
+
+        emptyState = np.zeros((constants.board_size, constants.board_size), dtype=int)
+        for i in range (0, missingStates):
+            parentStates.append(emptyState)
+
+        inputList = []
+        inputList.append(state)
+        for elem in parentStates:
+            inputList.append(elem)
+        inputList.append(colorArray)
+
+        # state = np.array(state)
+        # state = np.float64(state)
+        # state = state.reshape(1, 5, 5, 1)
+
+        inputList = np.array(inputList)
+        inputList = np.float64(inputList)
+        inputList = inputList.reshape(1, 5, 5, 5)
+
+        winner, probs = self.net.predict(inputList)
         winner = winner.item(0)
         probs = probs.flatten().tolist()
         #print("winner: {} , probs: {}".format(winner, probs))
