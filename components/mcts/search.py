@@ -1,6 +1,7 @@
 from random import random
 
-import components.nn.nn_api as nn_api
+import numpy as np
+
 from components.go import goEngineApi
 
 
@@ -17,8 +18,6 @@ class MonteCarloTreeSearch(object):
         self.root = node
 
         self.net_api = net_api
-
-
 
     # ehemals best_action
     def search_function(self, simulations_number):
@@ -65,14 +64,26 @@ class MonteCarloTreeSearch(object):
             # step 1
             if current_node.n == 0:
                 # TODO auf reale werte des NN aendern
-                current_node.winner = self.randomWinner() #von NN
-                current_node.p_distr = goEngineApi.getMockRealProbabilities(current_node.state.pos) #von NN
-                #net_api = nn_api.NetworkAPI()
-                #net_api.model_load()
+                current_node.winner = self.randomWinner()  # von NN
+                current_node.p_distr = goEngineApi.getMockRealProbabilities(current_node.state.pos)  # von NN
+                # net_api = nn_api.NetworkAPI()
+                # net_api.model_load()
                 # print(net_api.getPredictionFromNN(current_node.state.board))
 
-                current_node.winner, current_node.p_distr = self.net_api.getPredictionFromNN(current_node.state.board)
+                parentStates = []
+                currentNodeCopy = current_node
 
+                for i in range(0, 3):
+                    if currentNodeCopy.parent is not None:
+                        currentNodeCopy = currentNodeCopy.parent
+                        all_zeros = not np.any(currentNodeCopy.state.board)
+                        equalToParent = np.array_equal(currentNodeCopy.state.board, current_node.state.board)
+                        if not all_zeros and not equalToParent:
+                            parentStates.append(currentNodeCopy.state.board)
+
+                current_node.winner, current_node.p_distr = self.net_api.getPredictionFromNN(current_node.state.board,
+                                                                                             parentStates,
+                                                                                             current_node.state.pos.to_play)
 
                 # TODO muss mit richtigen werten ersetzt werden
                 # if current_node.winner < 0:
@@ -80,8 +91,8 @@ class MonteCarloTreeSearch(object):
                 # else:
                 #     current_node.winner = 1
 
-                #current_node.p_distr = goEngineApi.getSemiMockProbabilities(current_node.state.pos,
-                 #                                                           current_node.p_distr)
+                # current_node.p_distr = goEngineApi.getSemiMockProbabilities(current_node.state.pos,
+                #                                                           current_node.p_distr)
 
                 return current_node
 

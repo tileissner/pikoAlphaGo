@@ -9,7 +9,7 @@ from tensorflow.keras import optimizers
 def getPredictionFromNN(self, state):
     state = np.array(state)
     state = np.float64(state)
-    state = state.reshape(1, 5, 5, 1)
+    state = state.reshape(1, 5, 5, 5)
 
     winner, probs = self.net.predict(state)
     winner = winner.item(0)
@@ -23,7 +23,6 @@ net_api = NetworkAPI()
 net_api.load_data()
 net_api.create_net()
 net_api.train_model(net_api.ALL_STATES, [net_api.WINNER, net_api.MOVES])
-
 
 net_api.model_load()
 

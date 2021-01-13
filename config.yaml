@@ -1,4 +1,6 @@
 board_size: 5
 location_replay_buffer: ''
 thread_count: 1
-mcts_simulations: 10
+mcts_simulations: 20
+amount_evaluator_iterations: 10
+state_history_length: 3

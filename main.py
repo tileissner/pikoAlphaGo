@@ -10,6 +10,8 @@ import utils.readConfigFile as configFile
 import numpy as np
 
 
+BLACK, NONE, WHITE = range(-1, 2)
+
 class selfplay:
     trainingSetList = []
 
@@ -67,13 +69,23 @@ class selfplay:
         listIndex = 0
         with open('replaybuffer.json', 'a', 1) as f:
             f.write("[")
+            #1 traininget = 1 entire game
             for trainingSet in self.trainingSetList:
                 rowIndex = 0
+                #1 t = eine zeile (=1 Zustand) des Spiels
                 for t in trainingSet:
                     if listIndex == (len(self.trainingSetList) - 1) and rowIndex == (len(trainingSet) -1):
-                        f.write(t.getAsJSON(True) + "\n")
+                        f.write(writeHistoryStates(trainingSet, rowIndex, True))
                     else:
-                        f.write(t.getAsJSON(False) + "\n")
+                        f.write(writeHistoryStates(trainingSet, rowIndex, False))
+                        # if rowIndex == 0:
+                        #     f.write(writeHistoryStates(trainingSet, 0, False))
+                        # if rowIndex == 1:
+                        #     f.write(writeHistoryStates(trainingSet, 1, False))
+                        # if rowIndex == 2:
+                        #     f.write(writeHistoryStates(trainingSet, 2, False))
+                        # if rowIndex == 3:
+                        #     f.write(writeHistoryStates(trainingSet, 3, False))
                     rowIndex += 1
                 listIndex += 1
             f.write("]")
@@ -120,6 +132,47 @@ def main(args):
 
 
 # startSelfPlay(constants.thread_count, constants.board_size, BLACK)
+
+
+def writeHistoryStates(trainingSet, index, lastElement):
+    previousStates = []
+    # dient auch als leeres board wenn wir auffüllen müssen
+    # falls nciht genug vorherige zustände vorhanden sind
+    color_w = np.zeros((5,5), dtype=int)
+    color_b = np.ones((5,5), dtype=int)
+    counter = 0
+
+    startValue = index - constants.state_history_length
+    if startValue < 0:
+        startValue = 0
+
+    #fall 0: geht er dann überhaupt rein?
+    #for i in range(startValue, index):
+    for i in range(startValue, index):
+        previousStates.append(trainingSet[i].state)
+        counter = counter + 1
+
+    previousStates = previousStates[::-1]
+
+    toBeFilled = constants.state_history_length - counter
+    previousStatesFilled = []
+    for i in range(0, toBeFilled):
+        previousStatesFilled.append(np.zeros((5,5), dtype=int))
+
+    if trainingSet[index].color == BLACK:
+        previousStatesFilled.append(color_b)
+    else:
+        previousStatesFilled.append(color_w)
+
+
+
+    # die fehlenden 0er listen als history auffuellen -> gleiche anzahl an history in jedem state (auch zb  im ersten state)
+    for elem in previousStatesFilled:
+        previousStates.append(elem)
+
+    return trainingSet[index].getAsJSONWithPreviousStates(lastElement, previousStates) + "\n"
+
+
 
 
 if __name__ == "__main__":
