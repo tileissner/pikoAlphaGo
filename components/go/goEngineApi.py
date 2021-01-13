@@ -33,16 +33,17 @@ def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
         else:
             challengerPlayerWins += 1
 
-    print(currentPlayer + " wins")
-    print(challengerPlayer + " wins")
+    print(str(currentPlayer.color) + " wins")
+    print(str(challengerPlayer.color) + " wins")
 
     # wenn 55% -> neues model
-    if challengerPlayer / constants.amount_evaluator_iterations > 0.55:
+    if challengerPlayerWins / constants.amount_evaluator_iterations > 0.55:
         print("neues netz ist besser!")
-        return challengerPlayer.net
+        # überschreibe das current best network mit dem neuen challenger network
+        constants.currentBestNetFileName = challengerPlayer.net_api.pathToModel
     else:
         print("neues netz bringt keine verbesserung")
-        return currentPlayer.net
+
 
 
 def selfPlay(board_size, color):
@@ -169,7 +170,7 @@ def getSemiMockProbabilities(pos, probs):
             probabilities.append(0.0)
         else:  # legal move
             # probabilities.update({index: 0.0})
-            probabilities.append(abs(probs[0][index]))
+            probabilities.append(abs(probs[index]))
         index += 1
 
     return probabilities
@@ -181,7 +182,7 @@ def startGameMCTS(pos, color):
     # Temoporärer Ladevorgang d Netzes
 
     net_api = NetworkAPI()
-    net_api.model_load()
+    net_api.model_load(constants.currentBestNetFileName)
 
     while not pos.is_game_over():
         # print(pos.board)
@@ -214,16 +215,17 @@ def startGameMCTS(pos, color):
 
 def startGameEvaluation(pos, color, currentPlayer, challengerPlayer):
     while not pos.is_game_over():
-        print("gewählte aktion ", action)
         # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
-        currentColor = color
+
         # print("Random Number: " + str(randomNum))
         if (color == WHITE):
             action = choseActionAccordingToMCTS(pos, currentPlayer.net_api)
+            #print("gewählte aktion ", action)
             pos = pos.play_move(action, WHITE, False)
             color = BLACK
         elif (color == BLACK):
             action = choseActionAccordingToMCTS(pos, challengerPlayer.net_api)
+            print("gewählte aktion ", action)
             pos = pos.play_move(action, BLACK, False)
             color = WHITE
 
@@ -251,4 +253,5 @@ def choseActionAccordingToMCTS(pos, nn_api):
 
 
 def randomStartPlayer():
-    return 1 if random() < 0.5 else -1
+    return 1 if random.random() < 0.5 else -1
+    #return 1
