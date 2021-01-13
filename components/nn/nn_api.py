@@ -19,6 +19,7 @@ class NetworkAPI:
     input_shape = None
 
     net = None
+    pathToModel = ""
 
     def load_data(self):
         """
@@ -81,7 +82,10 @@ class NetworkAPI:
 
         # test_loss, test_acc = model.evaluate(test)"""
         dirname = os.path.dirname(__file__)
-        self.net.save(os.path.join(dirname, 'models/model/'))
+        # saved_model1234567
+        self.pathToModel = 'models/model' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        constants.challengerNetFileName = self.pathToModel
+        self.net.save(os.path.join(dirname, self.pathToModel))
 
 
     # %%
@@ -93,15 +97,15 @@ class NetworkAPI:
                     tf.summary.histogram(tf_var.name, tf_var.numpy(), step=epochs)
 
 
-    def model_load(self, fileName = None):
-        if fileName is None:
+    def model_load(self, pathToFile = None):
+        if pathToFile is None:
             dirname = os.path.dirname(__file__)
             filename = os.path.join(dirname, 'models/model/saved_model.pb')
         else:
             dirname = os.path.dirname(__file__)
-            filename = os.path.join(dirname, 'models/model/' + fileName + '.pb')
-
-        self.net = tf.keras.models.load_model(os.path.join(dirname, 'models/model/'))
+            #filename = os.path.join(dirname, pathToFile + 'saved_model.pb')
+            self.net = tf.keras.models.load_model(os.path.join(dirname, pathToFile))
+            self.pathToModel = pathToFile
 
     def getPredictionFromNN(self, state, parentStates, color):
 

@@ -9,3 +9,9 @@ Q = None
 mcts_simulations = None
 amount_evaluator_iterations = None
 state_history_length = None
+pipeline_runs = None
+
+
+
+currentBestNetFileName = "models/model"
+challengerNetFileName = ""

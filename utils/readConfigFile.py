@@ -12,5 +12,6 @@ def readConfigFile(location):
             constants.mcts_simulations = param_list['mcts_simulations']
             constants.amount_evaluator_iterations = param_list['amount_evaluator_iterations']
             constants.state_history_length = param_list['state_history_length']
+            constants.pipeline_runs = param_list['pipeline_runs']
         except yaml.YAMLError as exc:
             print(exc)

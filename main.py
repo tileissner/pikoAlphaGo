@@ -65,10 +65,11 @@ class selfplay:
         # # for u in uniq_lines:
         # # sys.stdout.write(u)
 
-    def writeTrainingSetsToJsonBuffer(self):
+    def writeTrainingSetsToJsonBuffer(self, iteration):
         listIndex = 0
         with open('replaybuffer.json', 'a', 1) as f:
-            f.write("[")
+            if iteration == 0:
+                f.write("[")
             #1 traininget = 1 entire game
             for trainingSet in self.trainingSetList:
                 rowIndex = 0
@@ -107,25 +108,46 @@ def main(args):
     #     f.write("[")
 
     BLACK, NONE, WHITE = range(-1, 2)
-    sp = selfplay()
-    sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
-    #wait for finish of threads
-    sp.writeTrainingSetsToJsonBuffer()
 
-    # warte auf threads
-    # sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
+    for i in range(0,constants.pipeline_runs):
 
-    # append eckige klammern, damit gültiges json
-    # with open("replaybuffer.json", 'a') as f:
-    #     f.write("]")
+        # load old (=current best network)
+        print("Lade bisheriges Netzwerk")
+        currentBestNetApi = nn_api.NetworkAPI()
+        currentBestNetApi.model_load(constants.currentBestNetFileName)
 
-    print("White: ", sp.winswhite)
-    print("Black: ", sp.winsblack)
+        print("Starte Self-Play mit altem Netzwerk")
+        sp = selfplay()
+        sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
+        #wait for finish of threads
+        sp.writeTrainingSetsToJsonBuffer(i)
 
-    net_api = nn_api.NetworkAPI()
-    net_api.load_data()  # werte initialisiert
-    net_api.create_net()
-    net_api.train_model(net_api.ALL_STATES, [net_api.WINNER, net_api.MOVES])
+        # warte auf threads
+        # sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
+
+        # append eckige klammern, damit gültiges json
+        # with open("replaybuffer.json", 'a') as f:
+        #     f.write("]")
+
+        print("White: ", sp.winswhite)
+        print("Black: ", sp.winsblack)
+
+        challengerNetApi = nn_api.NetworkAPI()
+        challengerNetApi.load_data()  # werte initialisiert
+        challengerNetApi.create_net()
+        print("Trainiere neues Netzwerk")
+        challengerNetApi.train_model(challengerNetApi.ALL_STATES, [challengerNetApi.WINNER, challengerNetApi.MOVES])
+        # neues netz wurde erstellt -> wird zum challenger netz
+
+        print("Evaluiere neues Netzwerk")
+        print(constants.currentBestNetFileName)
+        print(constants.challengerNetFileName)
+
+        #goApi.evaluateNet(constants.board_size, -1, currentBestNetApi.pathToModel, challengerNetApi.pathToModel)
+        goApi.evaluateNet(constants.board_size, -1, constants.currentBestNetFileName, constants.challengerNetFileName)
+
+        print("Neues netz: " + constants.currentBestNetFileName)
+        removeLastCharacter('replaybuffer.json')
 
     end = time.time()
     print("Time elapsed: ", end - start)
@@ -173,11 +195,22 @@ def writeHistoryStates(trainingSet, index, lastElement):
     return trainingSet[index].getAsJSONWithPreviousStates(lastElement, previousStates) + "\n"
 
 
+def removeLastCharacter(filename):
+    f = open(filename, "r")
+    content = f.read()
+    content = content[:-1]
+    content = content + ","
+
+
+
+    f = open(filename, "w")
+    f.write(content)
+    f.close()
+
 
 
 if __name__ == "__main__":
     # execute only if run as a script
     main(sys.argv)
-
 
 
