@@ -3,6 +3,8 @@ from random import random
 import numpy as np
 
 from components.go import goEngineApi
+from utils import constants
+from copy import deepcopy
 
 
 class MonteCarloTreeSearch(object):
@@ -66,11 +68,12 @@ class MonteCarloTreeSearch(object):
                 # print(net_api.getPredictionFromNN(current_node.state.board))
 
                 parentStates = []
-                currentNodeCopy = current_node
+                currentNodeCopy = deepcopy(current_node)
 
-                for i in range(0, 3):
+
+                for i in range(0, constants.state_history_length):
                     if currentNodeCopy.parent is not None:
-                        currentNodeCopy = currentNodeCopy.parent
+                        currentNodeCopy = deepcopy(currentNodeCopy.parent)
                         all_zeros = not np.any(currentNodeCopy.state.board)
                         equalToParent = np.array_equal(currentNodeCopy.state.board, current_node.state.board)
                         if not all_zeros and not equalToParent:
@@ -79,8 +82,9 @@ class MonteCarloTreeSearch(object):
                 current_node.winner, current_node.p_distr = self.net_api.getPredictionFromNN(current_node.state.board,
                                                                                              parentStates,
                                                                                              current_node.state.pos.to_play)
-                current_node.p_distr = goEngineApi.getSemiMockProbabilities(current_node.state.pos,
-                                                                          current_node.p_distr)
+                # Set illegal moves to 0
+                current_node.p_distr = goEngineApi.zero_illegal_moves_from_prediction(current_node.state.pos,
+                                                                                      current_node.p_distr)
 
                 # TODO muss mit richtigen werten ersetzt werden
                 # if current_node.winner < 0:

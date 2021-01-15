@@ -1,5 +1,5 @@
 from components.go import coords
-from components.go.goEngineApi import choseActionAccordingToMCTS, createGame
+from components.go.goEngineApi import createGame
 from components.nn.nn_api import NetworkAPI
 import numpy as np
 import tensorflow as tf
