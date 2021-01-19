@@ -12,7 +12,7 @@ from components.nn.nn_api import NetworkAPI
 from components.player.player import Player
 from utils import constants
 
-BLACK, NONE, WHITE = range(-1, 2)
+WHITE, NONE, BLACK = range(-1, 2)
 
 
 def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
@@ -33,8 +33,9 @@ def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
         else:
             challengerPlayerWins += 1
 
-    print(str(currentPlayer.color) + " wins")
-    print(str(challengerPlayer.color) + " wins")
+    print(str(currentPlayer.color) + " hat " + str(currentPlayerWins) + " wins")
+    #print(currentPlayer.color, " hat ", currentPlayerWins, " wins")
+    print(str(challengerPlayer.color) + " hat " + str(challengerPlayerWins) + " wins")
 
     # wenn 55% -> neues model
     if challengerPlayerWins / constants.amount_evaluator_iterations > 0.55:
@@ -103,9 +104,9 @@ def getTrainingSets():
 
 def getPlayerName(color):
     if color == -1:
-        return "BLACK"
-    elif color == 1:
         return "WHITE"
+    elif color == 1:
+        return "BLACK"
     else:
         return "FAIL"
 
@@ -161,7 +162,7 @@ def getMockProbabilities(pos):
     return probabilities
 
 
-def getSemiMockProbabilities(pos, probs):
+def zero_illegal_moves_from_prediction(pos, probs):
     probabilities = []
 
     index = 0
@@ -186,7 +187,11 @@ def startGameMCTS(pos, color):
 
     while not pos.is_game_over():
         # print(pos.board)
-        action = choseActionAccordingToMCTS(pos, net_api)
+        action, probs = chooseActionAccordingToMCTS(pos, net_api)
+
+        #GetMoveProbablitiesFrom MCTS
+
+
         print("gewählte aktion ", action)
         # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
         currentColor = color
@@ -198,7 +203,9 @@ def startGameMCTS(pos, color):
             pos = pos.play_move(action, BLACK, False)
             color = WHITE
         # TODO: hier ggf. numpy array direkt in normales array umwandeln
-        newTrainingSet = TrainingSet(pos.board, getMockProbabilities(pos), currentColor)
+        mockprobs = getMockProbabilities(pos)
+
+        newTrainingSet = TrainingSet(pos.board, probs, currentColor)
         trainingSet.append(newTrainingSet)
 
     # update winner when game is finished for all experiences in this single game
@@ -219,13 +226,13 @@ def startGameEvaluation(pos, color, currentPlayer, challengerPlayer):
 
         # print("Random Number: " + str(randomNum))
         if (color == WHITE):
-            action = choseActionAccordingToMCTS(pos, currentPlayer.net_api)
-            #print("gewählte aktion ", action)
+            action, probs = chooseActionAccordingToMCTS(pos, currentPlayer.net_api)
+            print("gewählte aktion von weiß ", action)
             pos = pos.play_move(action, WHITE, False)
             color = BLACK
         elif (color == BLACK):
-            action = choseActionAccordingToMCTS(pos, challengerPlayer.net_api)
-            print("gewählte aktion ", action)
+            action, probs = chooseActionAccordingToMCTS(pos, challengerPlayer.net_api)
+            print("gewählte aktion von schwarz ", action)
             pos = pos.play_move(action, BLACK, False)
             color = WHITE
 
@@ -242,14 +249,15 @@ def startGameEvaluation(pos, color, currentPlayer, challengerPlayer):
     # return pos
 
 
-def choseActionAccordingToMCTS(pos, nn_api):
+def chooseActionAccordingToMCTS(pos, nn_api):
     initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
 
     root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state, move_from_parent=None,
                                                   parent=None)
     mcts = MonteCarloTreeSearch(root, nn_api)
     resultChild = mcts.search_function(constants.mcts_simulations)
-    return coords.from_flat(resultChild.move_from_parent)
+
+    return coords.from_flat(resultChild.move_from_parent), root.getProbDistributionForChildren()
 
 
 def randomStartPlayer():

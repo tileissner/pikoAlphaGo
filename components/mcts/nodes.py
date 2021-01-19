@@ -62,7 +62,7 @@ class MonteCarloTreeSearchNode(ABC):
         # TODO umändern auf prüfen, ob alles auf 0 ist (1 = gültiger zug, 0 = ungültig)
         return len(self.untried_actions) == 0
 
-    def best_child(self, c_puct=4.0):
+    def best_child(self, c_puct):
         # c_param = 0 --> exploitation
         # c_param irgendwas = exploration
         # choices weights = upper confidents bounds
@@ -81,8 +81,11 @@ class MonteCarloTreeSearchNode(ABC):
             # if c.n == 0:
             # c._number_of_visits = 1
             # choices_weights.append((c.q_value / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n)))
-            choices_weights.append(
-                c.q_value + c_puct * self.p_distr[c.move_from_parent] * math.sqrt(children_visit_count / (1 + self.n)))
+            #TODO irgendwas verhindert hier die exploration und aller vorrausicht nach nicht cpuct
+            q_value = c.q_value
+            u_value = c_puct * self.p_distr[c.move_from_parent] * math.sqrt((children_visit_count + 1) / (1 + self.n))
+            #children_value = c.q_value + c_puct * self.p_distr[c.move_from_parent] * math.sqrt((children_visit_count + 1) / (1 + self.n))
+            choices_weights.append(q_value + u_value)
             # u = Q[s][a] + c_puct * P[a] * sqrt(sum(N[s])) / (1 + N[s][a])
 
         # choices_weights = [
@@ -90,7 +93,9 @@ class MonteCarloTreeSearchNode(ABC):
         #     for c in self.children
         # ]
             # Zurückgeben der besten Aktion (enthalten in children) auf Basis d. berechneten u-wertes
-        return self.children[np.argmax(choices_weights)]  # , best_action
+        # TODO argmax sollte den hoechsten wert zuerueckgeben, tut es aber nicht anscheinend
+        bestchild = self.children[np.argmax(choices_weights)]
+        return bestchild  # , best_action
 
 
 class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
@@ -174,3 +179,20 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
 
     def randomWinner(self):
         return 1 if random() < 0.5 else -1
+
+
+    def getProbDistributionForChildren(self):
+        number_of_visits_for_children = [0.] * 26
+
+
+        #Iterate over children and get move from paren
+        for c in self.children:
+            children_visit_count = c._number_of_visits
+            index_in_array = c.move_from_parent
+            number_of_visits_for_children[index_in_array] = children_visit_count
+
+        probs_from_mcts = [number_of_visits_for_children[i]/sum(number_of_visits_for_children) for i in range(len(number_of_visits_for_children))]
+
+        return probs_from_mcts
+
+

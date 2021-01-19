@@ -14,13 +14,20 @@ class NeuralNetwork(Model):
 
 	def __init__(self):
 		super(NeuralNetwork, self).__init__()
-		self.conv1 = Conv2D(filters=32, kernel_size=2, name='conv1')
+
+		#TODO initiliazer
+		initializer = tf.keras.initializers.RandomNormal(stddev=0.05, mean=0)
+		#initializer = tf.keras.initializers.Zeros()
+		#initializer = tf.keras.initializers.Ones()
+
+
+		self.conv1 = Conv2D(filters=32, kernel_size=2, name='conv1', kernel_initializer=initializer)
 		self.normalization1 = BatchNormalization()
 		self.activation1 = Activation(activation='relu', name='act1')
-		self.conv2 = Conv2D(filters=32, kernel_size=2, name="conv2")
+		self.conv2 = Conv2D(filters=32, kernel_size=2, name="conv2", kernel_initializer=initializer)
 		self.normalization2 = BatchNormalization()
 		self.activation2 = Activation(activation='relu', name="act2")
-		self.conv3 = Conv2D(filters=32, kernel_size=2, name="conv3")
+		self.conv3 = Conv2D(filters=32, kernel_size=2, name="conv3", kernel_initializer=initializer)
 		self.normalization3 = BatchNormalization()
 		self.activation3 = Activation(activation='relu', name='act3')
 
@@ -34,7 +41,7 @@ class NeuralNetwork(Model):
 		"""
 
 		"""value head"""
-		self.vh_conv = Conv2D(filters=1, kernel_size=1, name='vh_conv')
+		self.vh_conv = Conv2D(filters=1, kernel_size=1, name='vh_conv', kernel_initializer=initializer)
 		self.vh_norm = BatchNormalization(name='vh_norm')
 		self.vh_activation = Activation(activation='relu', name='vh_act')
 		self.vh_flatten = Flatten(name='vh_flat')
@@ -42,15 +49,15 @@ class NeuralNetwork(Model):
 		wurde im original paper von 361 = 19x19 auf 256 connected
 		bei uns ist feld aber deutlich kleiner 5x5 = 25 also auf 16 vllt?
 		"""
-		self.vh_dense1 = Dense(units=16, name='vh_fc1')		#Units = ?
-		self.vh_dense2 = Dense(units=1, activation='tanh', name='vh_out')
+		self.vh_dense1 = Dense(units=16, name='vh_fc1', kernel_initializer=initializer)		#Units = ?
+		self.vh_dense2 = Dense(units=1, activation='tanh', name='vh_out', kernel_initializer=initializer)
 
 		"""policy head"""
-		self.ph_conv = Conv2D(filters=2, kernel_size=1, name='ph_conv')
+		self.ph_conv = Conv2D(filters=2, kernel_size=1, name='ph_conv',kernel_initializer=initializer)
 		self.ph_norm = BatchNormalization(name='ph_norm')
 		self.ph_activation = Activation(activation='relu', name='ph_act')
 		self.ph_flatten = Flatten(name='ph_flat')
-		self.ph_dense = Dense(units=26, name='ph_out', activation=tf.nn.softmax) #Units = Boardsize + 1 = N**2 + 1
+		self.ph_dense = Dense(units=26, name='ph_out', activation=tf.nn.softmax, kernel_initializer=initializer) #Units = Boardsize + 1 = N**2 + 1
 
 	def call(self, inputs):  # create model
 		x = self.conv1(inputs)

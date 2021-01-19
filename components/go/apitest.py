@@ -1,7 +1,7 @@
 import components.go.goEngineApi as goApi
 import yaml
 
-BLACK, NONE, WHITE = range(-1, 2)
+WHITE, NONE, BLACK = range(-1, 2)
 
 
 with open("../../config.yaml", 'r') as stream:
