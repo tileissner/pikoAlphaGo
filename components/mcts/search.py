@@ -106,7 +106,8 @@ class MonteCarloTreeSearch(object):
                 return current_node
 
             # step 3 + 4
-            current_node = current_node.best_child()  # best_child geht den schritt in das beste kind
+            # TODO passt das mit c_puct?
+            current_node = current_node.best_child(c_puct=4.)  # best_child geht den schritt in das beste kind
 
             # -- ALTER PART --
             # # if self.node not in self.visitedNodes:

@@ -20,8 +20,8 @@ class PikoAlphaGoMove(AbstractGameAction):
 
 
 class GoGamestate(TwoPlayersAbstractGameState):
-    WHITE = 1
-    BLACK = -1
+    WHITE = -1
+    BLACK = 1
 
     # Position.board object from go engine
     pos = []

@@ -10,7 +10,7 @@ import utils.readConfigFile as configFile
 import numpy as np
 
 
-BLACK, NONE, WHITE = range(-1, 2)
+WHITE, NONE, BLACK = range(-1, 2)
 
 class selfplay:
     trainingSetList = []
@@ -107,7 +107,7 @@ def main(args):
     # with open("replaybuffer.json", 'a') as f:
     #     f.write("[")
 
-    BLACK, NONE, WHITE = range(-1, 2)
+    WHITE, NONE, BLACK = range(-1, 2)
 
     for i in range(0,constants.pipeline_runs):
 

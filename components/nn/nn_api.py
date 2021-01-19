@@ -35,6 +35,7 @@ class NetworkAPI:
         win = []
 
         dirname = os.path.dirname(__file__)
+        #with open(os.path.join(dirname, '../../replaybuffer_perfect_game_last3turns.json')) as json_file:
         with open(os.path.join(dirname, '../../replaybuffer.json')) as json_file:
             data = json.load(json_file)
             for line in range(len(data)):
@@ -67,25 +68,33 @@ class NetworkAPI:
         #Adam vs SGD -> erst mal mit SGD für "einfaches" debugging und für abschließende optimierung dann mit Adam
         #learning rate für sgd liegt zwischen 0.01 und 0.1 bei perfektem game buffer
         #bei random buffer kleiner ~0.0001
-        self.optimizer = optimizers.SGD(learning_rate=0.0001)
+        self.optimizer = optimizers.SGD(learning_rate=0.01)
         self.net = nn_model.NeuralNetwork()
-        self.net.compile(optimizer=self.optimizer, loss=['mse', 'categorical_crossentropy'])
+        self.net.compile(optimizer=self.optimizer, loss=['mse', 'categorical_crossentropy']) #l2 regularization evtl hinzufügen
         self.net.build(self.input_shape)
 
     def train_model(self, features, labels):
-        EPOCHS = 300
+        EPOCHS = 700
 
         log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        checkpoint_path = "training_1/{epoch:04d}-cp.ckpt"
+        #checkpoint_dir = os.path.dirname(checkpoint_path)
+
         #tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
         hist_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=self.log_weights(EPOCHS), log_dir=log_dir)
-        self.net.fit(features, labels, epochs=EPOCHS, callbacks=[hist_callback])
+        #neue funktion hier -> checkpoints erstellen
+        cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, save_freq="epoch", period=1, verbose=1)
 
+        self.net.fit(features, labels, epochs=EPOCHS, callbacks=[hist_callback, cp_callback])
+
+        ############hier decouplen damit wir auch ohne training ein netz speichern können direkt nach initalisierung
         # test_loss, test_acc = model.evaluate(test)"""
         dirname = os.path.dirname(__file__)
         # saved_model1234567
         self.pathToModel = 'models/model' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         constants.challengerNetFileName = self.pathToModel
         self.net.save(os.path.join(dirname, self.pathToModel))
+        return self.pathToModel
 
 
     # %%

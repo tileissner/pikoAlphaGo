@@ -12,7 +12,7 @@ from components.nn.nn_api import NetworkAPI
 from components.player.player import Player
 from utils import constants
 
-BLACK, NONE, WHITE = range(-1, 2)
+WHITE, NONE, BLACK = range(-1, 2)
 
 
 def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
@@ -33,8 +33,9 @@ def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
         else:
             challengerPlayerWins += 1
 
-    print(str(currentPlayer.color) + " wins")
-    print(str(challengerPlayer.color) + " wins")
+    print(str(currentPlayer.color) + " hat " + str(currentPlayerWins) + " wins")
+    #print(currentPlayer.color, " hat ", currentPlayerWins, " wins")
+    print(str(challengerPlayer.color) + " hat " + str(challengerPlayerWins) + " wins")
 
     # wenn 55% -> neues model
     if challengerPlayerWins / constants.amount_evaluator_iterations > 0.55:
@@ -103,9 +104,9 @@ def getTrainingSets():
 
 def getPlayerName(color):
     if color == -1:
-        return "BLACK"
-    elif color == 1:
         return "WHITE"
+    elif color == 1:
+        return "BLACK"
     else:
         return "FAIL"
 
@@ -226,12 +227,12 @@ def startGameEvaluation(pos, color, currentPlayer, challengerPlayer):
         # print("Random Number: " + str(randomNum))
         if (color == WHITE):
             action, probs = chooseActionAccordingToMCTS(pos, currentPlayer.net_api)
-            #print("gewählte aktion ", action)
+            print("gewählte aktion von weiß ", action)
             pos = pos.play_move(action, WHITE, False)
             color = BLACK
         elif (color == BLACK):
             action, probs = chooseActionAccordingToMCTS(pos, challengerPlayer.net_api)
-            print("gewählte aktion ", action)
+            print("gewählte aktion von schwarz ", action)
             pos = pos.play_move(action, BLACK, False)
             color = WHITE
 
