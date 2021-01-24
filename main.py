@@ -143,7 +143,7 @@ def main(args):
         print(constants.currentBestNetFileName)
         print(constants.challengerNetFileName)
 
-        #goApi.evaluateNet(constants.board_size, -1, currentBestNetApi.pathToModel, challengerNetApi.pathToModel)
+
         goApi.evaluateNet(constants.board_size, -1, constants.currentBestNetFileName, constants.challengerNetFileName)
 
         print("Neues netz: " + constants.currentBestNetFileName)

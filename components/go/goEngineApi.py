@@ -1,3 +1,4 @@
+import math
 import random
 
 import numpy as np
@@ -20,14 +21,15 @@ def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
     currentPlayerWins = 0
     challengerPlayerWins = 0
 
+    # NEVER CHANGE COLOR
     currentPlayer = Player(WHITE, currentNetFileName)
     challengerPlayer = Player(BLACK, challengerNetFileName)
 
     for _ in range(0, constants.amount_evaluator_iterations):
         # Zufällige Auswahl wer beginnt
-        color = randomStartPlayer()
 
-        winner = startGameEvaluation(pos, color, currentPlayer, challengerPlayer)
+
+        winner = startGameEvaluation(pos, currentPlayer, challengerPlayer)
         if winner == currentPlayer:
             currentPlayerWins += 1
         else:
@@ -185,9 +187,27 @@ def startGameMCTS(pos, color):
     net_api = NetworkAPI()
     net_api.model_load(constants.currentBestNetFileName)
 
+
+
+    initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+
+    root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state, move_from_parent=None,
+                                                  parent=None)
+
+    mcts = MonteCarloTreeSearch(root, net_api, (1/math.sqrt(2)))
+    # return coords.from_flat(resultChild.move_from_parent), root.getProbDistributionForChildren(),
+
     while not pos.is_game_over():
         # print(pos.board)
-        action, probs = chooseActionAccordingToMCTS(pos, net_api)
+        # resultChild = mcts.search_function(constants.mcts_simulations)
+        new_root = mcts.search_function(constants.mcts_simulations)
+
+        action = coords.from_flat(new_root.move_from_parent)
+        probs = new_root.parent.getProbDistributionForChildren()
+
+        root = new_root
+        mcts.root = new_root
+        #action, probs = chooseActionAccordingToMCTS(pos, net_api, root)
 
         #GetMoveProbablitiesFrom MCTS
 
@@ -203,7 +223,6 @@ def startGameMCTS(pos, color):
             pos = pos.play_move(action, BLACK, False)
             color = WHITE
         # TODO: hier ggf. numpy array direkt in normales array umwandeln
-        mockprobs = getMockProbabilities(pos)
 
         newTrainingSet = TrainingSet(pos.board, probs, currentColor)
         trainingSet.append(newTrainingSet)
@@ -220,20 +239,71 @@ def startGameMCTS(pos, color):
     return trainingSet
 
 
-def startGameEvaluation(pos, color, currentPlayer, challengerPlayer):
+def startGameEvaluation(pos, currentPlayer, challengerPlayer):
+
+    color = None
+    if randomStartPlayer() == currentPlayer.color:
+        color = currentPlayer.color
+
+    else:
+        color = challengerPlayer.color
+
+    initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+
+
+    current_player_new_root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state, move_from_parent=None,
+                                                                     parent=None)
+    challengerPlayer_player_new_root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state,
+                                                                              move_from_parent=None,
+                                                                              parent=None)
+
+    currentPlayer.mcts = MonteCarloTreeSearch(current_player_new_root, currentPlayer.net_api, 0.)
+    challengerPlayer.mcts = MonteCarloTreeSearch(challengerPlayer_player_new_root, challengerPlayer.net_api, 0.)
+
+    challengerPlayer_player_new_root.expand()
+    current_player_new_root.expand()
+
+
+
     while not pos.is_game_over():
+
+        # current_player_new_root = mcts_current_player.search_function(constants.mcts_simulations)
+        # challenger_player_new_root = mcts_challenger_player.search_function(constants.mcts_simulations)
+
         # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
 
         # print("Random Number: " + str(randomNum))
+
         if (color == WHITE):
-            action, probs = chooseActionAccordingToMCTS(pos, currentPlayer.net_api)
+            #action, probs = chooseActionAccordingToMCTS(pos, currentPlayer.net_api)
+            current_player_new_root = currentPlayer.mcts.search_function(constants.mcts_simulations)
+            action = coords.from_flat(current_player_new_root.move_from_parent)
+            #TODO Root des anderen spieler setzen
+            # in der evaluation kein trainingsset -> probs nicht benötigt
+            #probs = current_player_new_root.parent.getProbDistributionForChildren()
+
             print("gewählte aktion von weiß ", action)
             pos = pos.play_move(action, WHITE, False)
+            for child_node in challengerPlayer_player_new_root.children:
+                if child_node.move_from_parent == action:
+                    challengerPlayer_player_new_root = child_node
+
+
+            currentPlayer.mcts.root = current_player_new_root
             color = BLACK
         elif (color == BLACK):
-            action, probs = chooseActionAccordingToMCTS(pos, challengerPlayer.net_api)
+            #action, probs = chooseActionAccordingToMCTS(pos, challengerPlayer.net_api)
+            challengerPlayer_player_new_root = challengerPlayer.mcts.search_function(constants.mcts_simulations)
+            action = coords.from_flat(challengerPlayer_player_new_root.move_from_parent)
+            # TODO Root des anderen spieler setzen
             print("gewählte aktion von schwarz ", action)
             pos = pos.play_move(action, BLACK, False)
+
+            for child_node in current_player_new_root.children:
+                if child_node.move_from_parent == action:
+                    current_player_new_root = child_node
+
+            challengerPlayer.mcts.root = challengerPlayer_player_new_root
             color = WHITE
 
     # update winner when game is finished for all experiences in this single game
@@ -249,15 +319,19 @@ def startGameEvaluation(pos, color, currentPlayer, challengerPlayer):
     # return pos
 
 
-def chooseActionAccordingToMCTS(pos, nn_api):
-    initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+def chooseActionAccordingToMCTS(pos, nn_api, root):
 
-    root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state, move_from_parent=None,
-                                                  parent=None)
+
     mcts = MonteCarloTreeSearch(root, nn_api)
     resultChild = mcts.search_function(constants.mcts_simulations)
 
-    return coords.from_flat(resultChild.move_from_parent), root.getProbDistributionForChildren()
+
+    # for node in aktuellem node:
+    #     wenn nicht resultChild:
+    #         lösche node
+
+    return resultChild
+    # return coords.from_flat(resultChild.move_from_parent), root.getProbDistributionForChildren(),
 
 
 def randomStartPlayer():

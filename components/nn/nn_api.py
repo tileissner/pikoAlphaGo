@@ -74,7 +74,7 @@ class NetworkAPI:
         self.net.build(self.input_shape)
 
     def train_model(self, features, labels):
-        EPOCHS = 700
+        EPOCHS = 300
 
         log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         checkpoint_path = "training_1/{epoch:04d}-cp.ckpt"
