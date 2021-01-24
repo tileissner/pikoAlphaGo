@@ -11,12 +11,17 @@ amount_evaluator_iterations = None
 state_history_length = None
 pipeline_runs = None
 
+improvement_percentage_threshold = None
+input_stack_size = None
+custom_batch_size = None
 
+epochs = None
+
+temperature = None
+competitive = None
 
 
 currentBestNetFileName = "models/modeluntrained"
 #currentBestNetFileName = "models/model"
 challengerNetFileName = ""
 
-temperature = None
-competitive = None

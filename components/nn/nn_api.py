@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 
@@ -6,8 +7,6 @@ import tensorflow as tf
 from tensorflow.keras import optimizers
 
 import components.nn.nn_model as nn_model
-import datetime
-
 from utils import constants
 
 
@@ -48,7 +47,8 @@ class NetworkAPI:
         MOVES = np.array(move)
 
         # wieder auf 5 ändern an der letzten stelle wenn parents in der predcition enthalten
-        ALL_STATES = ALL_STATES.reshape(ALL_STATES.shape[0], 5, 5, 5)
+        ALL_STATES = ALL_STATES.reshape(ALL_STATES.shape[0], constants.board_size, constants.board_size,
+                                        constants.input_stack_size)
         # WINNER = WINNER.reshape(WINNER.shape[0], 5, 5, 1)
         # MOVES = MOVES.reshape(MOVES.shape[0], 5, 5, 1)
 
@@ -63,61 +63,65 @@ class NetworkAPI:
         self.ALL_STATES = ALL_STATES
         self.input_shape = input_shape
 
-    def create_net(self):
-        #lr = 0.001 zu groß für sgd -> loss für probs geht auf ~360
-        #Adam vs SGD -> erst mal mit SGD für "einfaches" debugging und für abschließende optimierung dann mit Adam
-        #learning rate für sgd liegt zwischen 0.01 und 0.1 bei perfektem game buffer
-        #bei random buffer kleiner ~0.0001
+    def create_net(self, input_shape_param = None):
+        # lr = 0.001 zu groß für sgd -> loss für probs geht auf ~360
+        # Adam vs SGD -> erst mal mit SGD für "einfaches" debugging und für abschließende optimierung dann mit Adam
+        # learning rate für sgd liegt zwischen 0.01 und 0.1 bei perfektem game buffer
+        # bei random buffer kleiner ~0.0001
         self.optimizer = optimizers.SGD(learning_rate=0.01)
         self.net = nn_model.NeuralNetwork()
-        self.net.compile(optimizer=self.optimizer, loss=['mse', 'categorical_crossentropy']) #l2 regularization evtl hinzufügen
+        self.net.compile(optimizer=self.optimizer,
+                         loss=['mse', 'categorical_crossentropy'])  # l2 regularization evtl hinzufügen
+        if input_shape_param is not None:
+            self.input_shape = input_shape_param
+
         self.net.build(self.input_shape)
 
+
     def train_model(self, features, labels):
-        EPOCHS = 300
+        EPOCHS = constants.epochs
 
         log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         checkpoint_path = "training_1/{epoch:04d}-cp.ckpt"
-        #checkpoint_dir = os.path.dirname(checkpoint_path)
+        # checkpoint_dir = os.path.dirname(checkpoint_path)
 
-        #tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+        # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
         hist_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=self.log_weights(EPOCHS), log_dir=log_dir)
-        #neue funktion hier -> checkpoints erstellen
-        cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, save_freq="epoch", period=1, verbose=1)
+        # neue funktion hier -> checkpoints erstellen
+        cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True,
+                                                         save_freq="epoch", period=1, verbose=1)
+        self.net.fit(features, labels, epochs=EPOCHS, batch_size=constants.custom_batch_size, callbacks=[hist_callback, cp_callback])
 
-        self.net.fit(features, labels, epochs=EPOCHS, callbacks=[hist_callback, cp_callback])
-
+    def save_model(self, filename=None):
         ############hier decouplen damit wir auch ohne training ein netz speichern können direkt nach initalisierung
-        # test_loss, test_acc = model.evaluate(test)"""
         dirname = os.path.dirname(__file__)
-        # saved_model1234567
-        self.pathToModel = 'models/model' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        if filename is None:
+            self.pathToModel = 'models/model' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        else:
+            self.pathToModel = 'models/model' + filename
         constants.challengerNetFileName = self.pathToModel
         self.net.save(os.path.join(dirname, self.pathToModel))
         return self.pathToModel
 
-
     # %%
     def log_weights(self, epochs):
-            writer = tf.summary.create_file_writer("/tmp/mylogs/eager")
+        writer = tf.summary.create_file_writer("/tmp/mylogs/eager")
 
-            with writer.as_default():
-                for tf_var in self.net.trainable_weights:
-                    tf.summary.histogram(tf_var.name, tf_var.numpy(), step=epochs)
+        with writer.as_default():
+            for tf_var in self.net.trainable_weights:
+                tf.summary.histogram(tf_var.name, tf_var.numpy(), step=epochs)
 
-
-    def model_load(self, pathToFile = None):
+    def model_load(self, pathToFile=None):
         if pathToFile is None:
             dirname = os.path.dirname(__file__)
             filename = os.path.join(dirname, 'models/model/saved_model.pb')
         else:
             dirname = os.path.dirname(__file__)
-            #filename = os.path.join(dirname, pathToFile + 'saved_model.pb')
+            # filename = os.path.join(dirname, pathToFile + 'saved_model.pb')
             self.net = tf.keras.models.load_model(os.path.join(dirname, pathToFile))
             self.pathToModel = pathToFile
 
     def getPredictionFromNN(self, state, parentStates, color):
-
 
         colorArray = None
         if color == -1:
@@ -128,7 +132,7 @@ class NetworkAPI:
         missingStates = constants.state_history_length - len(parentStates)
 
         emptyState = np.zeros((constants.board_size, constants.board_size), dtype=int)
-        for i in range (0, missingStates):
+        for i in range(0, missingStates):
             parentStates.append(emptyState)
 
         inputList = []
@@ -143,11 +147,10 @@ class NetworkAPI:
 
         inputList = np.array(inputList)
         inputList = np.float64(inputList)
-        inputList = inputList.reshape(1, 5, 5, 5)
+        inputList = inputList.reshape(1, constants.board_size, constants.board_size, constants.input_stack_size)
 
         winner, probs = self.net.predict(inputList)
         winner = winner.item(0)
         probs = probs.flatten().tolist()
-        #print("winner: {} , probs: {}".format(winner, probs))
+        # print("winner: {} , probs: {}".format(winner, probs))
         return winner, probs
-
