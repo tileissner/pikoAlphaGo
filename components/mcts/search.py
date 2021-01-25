@@ -152,27 +152,39 @@ class MonteCarloTreeSearch(object):
         """
         current_node = self.root
 
-
+        iter = 0
         for _ in range(0, simulations_number):
+
+
+
+            #print("iteration ", iter)
+            iter += 1
+
+            parent_nodes = self.createHistoryStates(current_node)
+
+            # chid shid 1. step
             # bestchild aufgerufen bis leaf node -- SOlange es kinder gibt
             while not len(current_node.children) == 0:
                 current_node = current_node.best_child(self.c_puct)
 
-            parentStates = []
-            currentNodeCopy = deepcopy(current_node)
-
-            for i in range(0, constants.state_history_length):
-                if currentNodeCopy.parent is not None:
-                    currentNodeCopy = deepcopy(currentNodeCopy.parent)
-                    all_zeros = not np.any(currentNodeCopy.state.board)
-                    equalToParent = np.array_equal(currentNodeCopy.state.board, current_node.state.board)
-                    if not all_zeros and not equalToParent:
-                        parentStates.append(currentNodeCopy.state.board)
+            # parentStates = []
+            # currentNodeCopy = deepcopy(current_node)
+            #
+            # for i in range(0, constants.state_history_length):
+            #     if currentNodeCopy.parent is not None:
+            #         currentNodeCopy = deepcopy(currentNodeCopy.parent)
+            #         all_zeros = not np.any(currentNodeCopy.state.board)
+            #         equalToParent = np.array_equal(currentNodeCopy.state.board, current_node.state.board)
+            #         if not all_zeros and not equalToParent:
+            #             parentStates.append(currentNodeCopy.state.board)
 
             # Init necessary, since winner Value is None initialized
             current_node.winner = 0.0
+            # chid shid 2. step
+            # predicted_winner = v vom chid shid
+            # p_distr = p vom chid shid
             predicted_winner, current_node.p_distr = self.net_api.getPredictionFromNN(current_node.state.board,
-                                                                                         parentStates,
+                                                                                         parent_nodes,
                                                                                          current_node.state.pos.to_play)
             #TODO: IF NICHT benötigt?
             if not current_node.is_fully_expanded():
@@ -181,6 +193,7 @@ class MonteCarloTreeSearch(object):
 
             #
 
+            # chid shid 3. step
             current_node.backpropagate(predicted_winner)
             current_node = self.root
 
@@ -194,7 +207,32 @@ class MonteCarloTreeSearch(object):
             #     current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos)  # von NN
 
 
-        return self.root
+        # exploration
+        if constants.competitive == 0:
+            highest_n_temperature = -1
+            best_child = None
+            for child in self.root.children:
+                n_temperature = pow(child._number_of_visits, (1 / constants.temperature))
+                if n_temperature > highest_n_temperature:
+                    highest_n_temperature = n_temperature
+                    best_child = child
+        # exploitation
+        else:
+            highest_visit_count = -1
+            best_child = None
+            for child in self.root.children:
+                if child._number_of_visits > highest_visit_count:
+                    highest_visit_count = child._number_of_visits
+                    best_child = child
+
+        #action wäre best_child.move_from_parent
+
+
+
+
+        # TODO wieso self.root zurückgeben?
+        # return self.root
+        return best_child
 
 
 
@@ -202,3 +240,33 @@ class MonteCarloTreeSearch(object):
 
     def randomWinner(self):
         return 1 if random() < 0.5 else -1
+
+
+    def createHistoryStates(self, current_node):
+        state_t_1 = None
+        state_t_2 = None
+        state_t_3 = None
+        parentStates = []
+        if current_node.parent is not None:
+            state_t_1 = current_node.parent.state.board
+
+        if current_node.parent is not None:
+            if current_node.parent.parent is not None:
+                state_t_2 = current_node.parent.parent.state.board
+
+        if current_node.parent is not None:
+            if current_node.parent.parent is not None:
+                if current_node.parent.parent.parent is not None:
+                    state_t_3 = current_node.parent.parent.parent.state.board
+
+        if state_t_1 is None:
+            state_t_1 = np.zeros([constants.board_size, constants.board_size], dtype=np.int8)
+        if state_t_2 is None:
+            state_t_2 = np.zeros([constants.board_size, constants.board_size], dtype=np.int8)
+        if state_t_3 is None:
+            state_t_3 = np.zeros([constants.board_size, constants.board_size], dtype=np.int8)
+
+        parentStates.append(state_t_1)
+        parentStates.append(state_t_2)
+        parentStates.append(state_t_3)
+        return parentStates

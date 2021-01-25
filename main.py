@@ -104,6 +104,9 @@ def main(args):
     if os.path.exists("replaybuffer.json"):
         os.remove("replaybuffer.json")
 
+    sys.setrecursionlimit(100000)
+    print("recursion limit: ", sys.getrecursionlimit())
+
     # with open("replaybuffer.json", 'a') as f:
     #     f.write("[")
 

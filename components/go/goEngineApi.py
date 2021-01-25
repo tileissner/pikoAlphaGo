@@ -203,8 +203,11 @@ def startGameMCTS(pos, color):
         #new_root = mcts.search_function(constants.mcts_simulations)
         new_root = mcts._new_search_function(constants.mcts_simulations)
 
+
         action = coords.from_flat(new_root.move_from_parent)
         probs = new_root.parent.getProbDistributionForChildren()
+
+        #new_root = discard_tree(new_root)
 
         root = new_root
         mcts.root = new_root
@@ -213,7 +216,8 @@ def startGameMCTS(pos, color):
         #GetMoveProbablitiesFrom MCTS
 
 
-        print("gewählte aktion ", action)
+        print("gewählte aktion {} von {}", action, color)
+        print(pos.board)
         # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
         currentColor = color
         # print("Random Number: " + str(randomNum))
@@ -338,3 +342,12 @@ def chooseActionAccordingToMCTS(pos, nn_api, root):
 def randomStartPlayer():
     return 1 if random.random() < 0.5 else -1
     #return 1
+
+def discard_tree(node):
+    """
+    keep best child as root and remove everything that is not a child of the given node
+    """
+    if node.parent is not None:
+        node.parent = None
+
+    return node

@@ -17,3 +17,6 @@ pipeline_runs = None
 currentBestNetFileName = "models/modeluntrained"
 #currentBestNetFileName = "models/model"
 challengerNetFileName = ""
+
+temperature = None
+competitive = None
