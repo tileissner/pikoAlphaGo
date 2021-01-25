@@ -14,6 +14,6 @@ pipeline_runs = None
 
 
 
-currentBestNetFileName = "models/model20210119-145041"
+currentBestNetFileName = "models/modeluntrained"
 #currentBestNetFileName = "models/model"
 challengerNetFileName = ""

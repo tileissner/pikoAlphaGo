@@ -200,7 +200,8 @@ def startGameMCTS(pos, color):
     while not pos.is_game_over():
         # print(pos.board)
         # resultChild = mcts.search_function(constants.mcts_simulations)
-        new_root = mcts.search_function(constants.mcts_simulations)
+        #new_root = mcts.search_function(constants.mcts_simulations)
+        new_root = mcts._new_search_function(constants.mcts_simulations)
 
         action = coords.from_flat(new_root.move_from_parent)
         probs = new_root.parent.getProbDistributionForChildren()
