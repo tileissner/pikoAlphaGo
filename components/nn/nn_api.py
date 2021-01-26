@@ -123,6 +123,11 @@ class NetworkAPI:
 
     def getPredictionFromNN(self, state, parentStates, color):
 
+        # TODO ergibt keinen sinn, fix für "startspieler", wenn color = None ist
+        if color is None:
+            WHITE, NONE, BLACK = range(-1, 2)
+            color = BLACK
+
         colorArray = None
         if color == -1:
             colorArray = np.ones((constants.board_size, constants.board_size), dtype=int)
