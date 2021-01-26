@@ -13,7 +13,14 @@ def readConfigFile(location):
             constants.amount_evaluator_iterations = param_list['amount_evaluator_iterations']
             constants.state_history_length = param_list['state_history_length']
             constants.pipeline_runs = param_list['pipeline_runs']
+            constants.improvement_percentage_threshold = param_list['improvement_percentage_threshold']
+            constants.custom_batch_size = param_list['custom_batch_size']
+            constants.epochs = param_list['epochs']
             constants.temperature = param_list['temperature']
             constants.competitive = param_list['competitive']
+
+            constants.input_stack_size = constants.state_history_length + 2
+
+
         except yaml.YAMLError as exc:
             print(exc)

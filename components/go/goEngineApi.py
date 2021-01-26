@@ -60,7 +60,7 @@ def createGame(N, beginner):
     EMPTY_BOARD = np.zeros([N, N], dtype=np.int8)
     pos = go.Position(EMPTY_BOARD, n=0, komi=0.0, caps=(0, 0),
                       lib_tracker=None, ko=None, recent=tuple(),
-                      board_deltas=None, to_play=beginner)
+                      board_deltas=None, to_play=BLACK)
     return pos
 
 

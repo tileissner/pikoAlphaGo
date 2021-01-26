@@ -7,16 +7,22 @@ from components.mcts.search import MonteCarloTreeSearch
 from components.nn.nn_api import NetworkAPI
 from components.player.player import Player
 from utils import constants
+import utils.readConfigFile as configFile
+
 import matplotlib.pyplot as plt
 
 WHITE, NONE, BLACK = range(-1, 2)
-currentNetFileName = "C:\\Users\\user\Documents\git\pikoAlphaGo\components\\nn\models\model20210119-145041"
+currentNetFileName = "/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/components/nn/models/model20210124-180819"
 nn_api = NetworkAPI()
 nn_api.model_load(currentNetFileName)
 
+constants.configFileLocation = "/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/config.yaml"
+# read config file and store it in constants.py
+configFile.readConfigFile(constants.configFileLocation)
+
 
 def evaluateNet(board_size, netColor, currentNetFileName):
-    pos = createGame(board_size, None)
+    pos = createGame(board_size, BLACK)
 
     netWins = 0
     randomPlayerWins = 0

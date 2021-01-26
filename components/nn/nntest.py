@@ -6,6 +6,13 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import optimizers
 import os
+import utils.readConfigFile as configFile
+
+from utils import constants
+
+constants.configFileLocation = "/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/config.yaml"
+# read config file and store it in constants.py
+configFile.readConfigFile(constants.configFileLocation)
 
 all_states = []
 empty_board = [[[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]], [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]]
@@ -21,7 +28,7 @@ all_states.append(zug_22)
 def getPredictionFromNN(net, state):
     state = np.array(state)
     state = np.float64(state)
-    state = state.reshape(1, 5, 5, 5)
+    state = state.reshape(1, constants.board_size, constants.board_size, constants.input_stack_size)
 
     winner, probs = net.predict(state)
     winner = winner.item(0)
@@ -33,7 +40,8 @@ net_api = NetworkAPI()
 net_api.load_data()
 net_api.create_net()
 
-fitted = net_api.train_model(net_api.ALL_STATES, [net_api.WINNER, net_api.MOVES])
+net_api.train_model(net_api.ALL_STATES, [net_api.WINNER, net_api.MOVES])
+fitted = net_api.save_model()
 print(fitted)
 
 net_api.create_net()
@@ -77,6 +85,7 @@ for state in all_states:
     print('state + history + color matrix, in order from t to t-3:\n{}'.format(state_reshape))
     print('probs after training for 300 epochs:\n{}, pass prob: {}, winner: {}'.format(probs_reshape, probs_nt[-1:], winner_nt))
 
+"""
 net_api.net.load_weights("/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/components/nn/training_1/0700-cp.ckpt")
 for state in all_states:
     winner_nt, probs_nt = getPredictionFromNN(net_api.net, state)
@@ -85,7 +94,7 @@ for state in all_states:
     probs_reshape = np.reshape(probs_reshape, (5,5))
     print('state + history + color matrix, in order from t to t-3:\n{}'.format(state_reshape))
     print('probs after training for 700 epochs:\n{}, pass prob: {}, winner: {}'.format(probs_reshape, probs_nt[-1:], winner_nt))
-
+"""
 #%%
 """
 net_api.model_load("models/model20210118-155808")

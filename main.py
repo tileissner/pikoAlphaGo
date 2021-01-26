@@ -28,10 +28,10 @@ class selfplay:
         trainingSet = goApi.selfPlay(board_size, color)
         self.trainingSetList.append(trainingSet)
 
-        # if trainingSet[-1].winner == -1:
-        #     self.winsblack += 1
-        # else:
-        #     self.winswhite += 1
+        if trainingSet[-1].winner == -1:
+            self.winsblack += 1
+        else:
+            self.winswhite += 1
         #
         # with open(file_name, 'a', 1) as f:
         #     index = 0
@@ -112,7 +112,21 @@ def main(args):
 
     WHITE, NONE, BLACK = range(-1, 2)
 
-    for i in range(0,constants.pipeline_runs):
+    #untrainiertes netz laden
+    untrained_net = nn_api.NetworkAPI()
+    #hack, damit wir subclassed model speichern können
+    #man muss subclassed model nämlich erst auf irgendeine art & weise verwenden
+    #die input_shape muss hier auch manuell gesetzt werden, da wir die daten noch nicht laden, da noch kein replaybuffer exisitiert
+    #diese input_shape wird allerdings erst übernommen wenn das model genutzt wurde
+    #wir lassen also predicten mit dummy variablen damit die input_shape ans netz übergeben wird
+    #sobald diese shape übergeben wurde kann das untrainierte netz gespeichert werden
+    initial_input_shape = (1, constants.board_size, constants.board_size, constants.input_stack_size)
+    untrained_net.create_net(initial_input_shape)
+    dummy_state = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+    winner_test, probs_test = untrained_net.getPredictionFromNN(dummy_state, [], BLACK)
+    constants.currentBestNetFileName = untrained_net.save_model("untrained")
+
+    for i in range(0, constants.pipeline_runs):
 
         # load old (=current best network)
         print("Lade bisheriges Netzwerk")
@@ -121,6 +135,7 @@ def main(args):
 
         print("Starte Self-Play mit altem Netzwerk")
         sp = selfplay()
+        # starts the self play games with the current best network
         sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
         #wait for finish of threads
         sp.writeTrainingSetsToJsonBuffer(i)
@@ -137,9 +152,13 @@ def main(args):
 
         challengerNetApi = nn_api.NetworkAPI()
         challengerNetApi.load_data()  # werte initialisiert
-        challengerNetApi.create_net()
+        challengerNetApi.net = currentBestNetApi.net
+        winner_loaded_test, probs_loaded_test = challengerNetApi.getPredictionFromNN(dummy_state, [], BLACK)
+        #challengerNetApi.create_net()
         print("Trainiere neues Netzwerk")
         challengerNetApi.train_model(challengerNetApi.ALL_STATES, [challengerNetApi.WINNER, challengerNetApi.MOVES])
+        winner_loaded_trained, probs_loaded_trained = challengerNetApi.getPredictionFromNN(dummy_state, [], BLACK)
+        challengerNetApi.save_model()
         # neues netz wurde erstellt -> wird zum challenger netz
 
         print("Evaluiere neues Netzwerk")
@@ -152,6 +171,9 @@ def main(args):
         print("Neues netz: " + constants.currentBestNetFileName)
         removeLastCharacter('replaybuffer.json')
 
+        # wenn neues netz besser -> kopiere weights des neuen netzes
+
+    print("Bestes Netz am Ende aller Pipeline Runs: {}".format(constants.currentBestNetFileName))
     end = time.time()
     print("Time elapsed: ", end - start)
 
