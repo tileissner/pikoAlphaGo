@@ -197,7 +197,10 @@ def startGameMCTS(pos, color):
     mcts = MonteCarloTreeSearch(root, net_api, (1/math.sqrt(2)))
     # return coords.from_flat(resultChild.move_from_parent), root.getProbDistributionForChildren(),
 
-    while not pos.is_game_over():
+    move_counter = 0
+
+    while not pos.is_game_over() and move_counter < constants.board_size **2 *2:
+
         # print(pos.board)
         # resultChild = mcts.search_function(constants.mcts_simulations)
         #new_root = mcts.search_function(constants.mcts_simulations)
@@ -207,7 +210,7 @@ def startGameMCTS(pos, color):
         action = coords.from_flat(new_root.move_from_parent)
         probs = new_root.parent.getProbDistributionForChildren()
 
-        #new_root = discard_tree(new_root)
+        new_root = discard_tree(new_root)
 
         root = new_root
         mcts.root = new_root
@@ -216,8 +219,6 @@ def startGameMCTS(pos, color):
         #GetMoveProbablitiesFrom MCTS
 
 
-        print("gewählte aktion {} von {}", action, color)
-        print(pos.board)
         # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
         currentColor = color
         # print("Random Number: " + str(randomNum))
@@ -229,14 +230,22 @@ def startGameMCTS(pos, color):
             color = WHITE
         # TODO: hier ggf. numpy array direkt in normales array umwandeln
 
+
+        print("gewählte aktion {} von {}".format(action, color))
+        # print(pos)
+        print(pos.board)
+
         newTrainingSet = TrainingSet(pos.board, probs, currentColor)
         trainingSet.append(newTrainingSet)
+        move_counter = move_counter + 1
+
+
+    print("gespielte züge {}".format(move_counter))
 
     # update winner when game is finished for all experiences in this single game
     for newTrainingSet in trainingSet:
         newTrainingSet.updateWinner(pos.result())
 
-    winner = pos.result()
     # print(pos.result())
     # print(pos.result_string())
     # replayBuffer.addToReplayBuffer(trainingSet)
