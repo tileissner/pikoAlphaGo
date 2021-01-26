@@ -7,3 +7,4 @@ class Player:
         self.color = color
         self.net_api = NetworkAPI()
         self.net_api.model_load(netFileName)
+        self.mcts = None

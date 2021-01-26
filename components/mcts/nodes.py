@@ -94,6 +94,7 @@ class MonteCarloTreeSearchNode(ABC):
         # ]
             # Zurückgeben der besten Aktion (enthalten in children) auf Basis d. berechneten u-wertes
         # TODO argmax sollte den hoechsten wert zuerueckgeben, tut es aber nicht anscheinend
+
         bestchild = self.children[np.argmax(choices_weights)]
         return bestchild  # , best_action
 
@@ -158,7 +159,7 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
             current_rollout_state = current_rollout_state.move(action)
         return current_rollout_state.game_result
 
-    def backpropagate(self, winner):
+    def backpropagate(self, predicted_winner_value):
 
         self._number_of_visits += 1.
         # self.w_value = self.w_value + w_value
@@ -169,13 +170,13 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         # if winner == None:
         #     winner = self.randomWinner()
 
-        self.winner += winner
+        self.winner += predicted_winner_value
         #self.q_value = (self._number_of_visits * self.q_value + winner) / (self._number_of_visits)
         self.q_value = self.winner / (self._number_of_visits)
         # TODO: Set correct Q-Value
 
         if self.parent:
-            self.parent.backpropagate(self.winner)
+            self.parent.backpropagate(predicted_winner_value)
 
     def randomWinner(self):
         return 1 if random() < 0.5 else -1
@@ -185,11 +186,12 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         number_of_visits_for_children = [0.] * 26
 
 
-        #Iterate over children and get move from paren
+        #Iterate over children and get move from parent
         for c in self.children:
             children_visit_count = c._number_of_visits
             index_in_array = c.move_from_parent
             number_of_visits_for_children[index_in_array] = children_visit_count
+
 
         probs_from_mcts = [number_of_visits_for_children[i]/sum(number_of_visits_for_children) for i in range(len(number_of_visits_for_children))]
 

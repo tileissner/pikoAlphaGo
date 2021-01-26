@@ -13,5 +13,7 @@ def readConfigFile(location):
             constants.amount_evaluator_iterations = param_list['amount_evaluator_iterations']
             constants.state_history_length = param_list['state_history_length']
             constants.pipeline_runs = param_list['pipeline_runs']
+            constants.temperature = param_list['temperature']
+            constants.competitive = param_list['competitive']
         except yaml.YAMLError as exc:
             print(exc)

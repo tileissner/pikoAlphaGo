@@ -104,6 +104,9 @@ def main(args):
     if os.path.exists("replaybuffer.json"):
         os.remove("replaybuffer.json")
 
+    sys.setrecursionlimit(100000)
+    print("recursion limit: ", sys.getrecursionlimit())
+
     # with open("replaybuffer.json", 'a') as f:
     #     f.write("[")
 
@@ -143,7 +146,7 @@ def main(args):
         print(constants.currentBestNetFileName)
         print(constants.challengerNetFileName)
 
-        #goApi.evaluateNet(constants.board_size, -1, currentBestNetApi.pathToModel, challengerNetApi.pathToModel)
+
         goApi.evaluateNet(constants.board_size, -1, constants.currentBestNetFileName, constants.challengerNetFileName)
 
         print("Neues netz: " + constants.currentBestNetFileName)
