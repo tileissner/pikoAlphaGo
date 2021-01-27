@@ -2,9 +2,7 @@ from random import random
 
 import numpy as np
 
-from components.go import goEngineApi
 from utils import constants
-from copy import deepcopy
 
 
 class MonteCarloTreeSearch(object):
@@ -50,95 +48,95 @@ class MonteCarloTreeSearch(object):
             count += 1
         return self.root.best_child(c_puct=0.)
 
-    def _tree_policy(self):
-        """
-        node selection
-        selects node to run rollout/playout for
-
-        Returns
-        -------
-
-        """
-        current_node = self.root
-
-        while not current_node.is_terminal_node():
-
-            # aktuelle knoten nehmen
-            # 1. prüfen ob er ncoh nicht besucht uwrde
-            #     1.1 NN um hilfe fragen -> P[s][a] und v
-            # 2. falls nicht -> alle kinder durchgehen "probieren"
-            #     2.1 und dann returnen (? stimmt das so ?)
-            # 3. neuer knoten = bestes kind
-            # 4. nächste schleifeniteration
-
-            # step 1
-            if current_node.n == 0:
-                # print(net_api.getPredictionFromNN(current_node.state.board))
-
-                parentStates = []
-                currentNodeCopy = deepcopy(current_node)
-
-
-
-                for i in range(0, constants.state_history_length):
-                    if currentNodeCopy.parent is not None:
-                        currentNodeCopy = deepcopy(currentNodeCopy.parent)
-                        all_zeros = not np.any(currentNodeCopy.state.board)
-                        equalToParent = np.array_equal(currentNodeCopy.state.board, current_node.state.board)
-                        if not all_zeros and not equalToParent:
-                            parentStates.append(currentNodeCopy.state.board)
-
-
-                current_node.winner, current_node.p_distr = self.net_api.getPredictionFromNN(current_node.state.board,
-                                                                                             parentStates,
-                                                                                             current_node.state.pos.to_play)
-                # Set illegal moves to 0
-                current_node.p_distr = goEngineApi.zero_illegal_moves_from_prediction(current_node.state.pos,
-                                                                                      current_node.p_distr)
-
-                # TODO muss mit richtigen werten ersetzt werden
-                # if current_node.winner < 0:
-                #     current_node.winner = -1
-                # else:
-                #     current_node.winner = 1
-
-                # current_node.p_distr = goEngineApi.getSemiMockProbabilities(current_node.state.pos,
-                #                                                           current_node.p_distr)
-                current_node._number_of_visits = 1
-                return current_node
-
-            # step 2
-            if not current_node.is_fully_expanded():
-
-                while not current_node.is_fully_expanded():
-                    current_node.expand()  # Setzen von q,n = 0
-
-                return current_node
-
-            # step 3 + 4
-            # TODO passt das mit c_puct?
-            current_node = current_node.best_child(self.c_puct)  # best_child geht den schritt in das beste kind
-
-            # -- ALTER PART --
-            # # if self.node not in self.visitedNodes:
-            # #     self.visitedNodes.append(current_node)
-            # #     return current_node
-            # if current_node.n == 0:
-            #     return current_node
-            #
-            # #ausprobieren der kinder
-            # if not current_node.is_fully_expanded():
-            #     return current_node.expand()
-            # else:
-            #     current_node = current_node.best_child()
-
-        # außerhalb der while schleife
-        if current_node.is_terminal_node():
-            current_node.winner = current_node.state.game_result
-            #TODO sinnvoll? lieber 0en?
-            current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos)  # von NN
-
-        return current_node
+    # def _tree_policy(self):
+    #     """
+    #     node selection
+    #     selects node to run rollout/playout for
+    #
+    #     Returns
+    #     -------
+    #
+    #     """
+    #     current_node = self.root
+    #
+    #     while not current_node.is_terminal_node():
+    #
+    #         # aktuelle knoten nehmen
+    #         # 1. prüfen ob er ncoh nicht besucht uwrde
+    #         #     1.1 NN um hilfe fragen -> P[s][a] und v
+    #         # 2. falls nicht -> alle kinder durchgehen "probieren"
+    #         #     2.1 und dann returnen (? stimmt das so ?)
+    #         # 3. neuer knoten = bestes kind
+    #         # 4. nächste schleifeniteration
+    #
+    #         # step 1
+    #         if current_node.n == 0:
+    #             # print(net_api.getPredictionFromNN(current_node.state.board))
+    #
+    #             parentStates = []
+    #             currentNodeCopy = deepcopy(current_node)
+    #
+    #
+    #
+    #             for i in range(0, constants.state_history_length):
+    #                 if currentNodeCopy.parent is not None:
+    #                     currentNodeCopy = deepcopy(currentNodeCopy.parent)
+    #                     all_zeros = not np.any(currentNodeCopy.state.board)
+    #                     equalToParent = np.array_equal(currentNodeCopy.state.board, current_node.state.board)
+    #                     if not all_zeros and not equalToParent:
+    #                         parentStates.append(currentNodeCopy.state.board)
+    #
+    #
+    #             current_node.winner, current_node.p_distr = self.net_api.getPredictionFromNN(current_node.state.board,
+    #                                                                                          parentStates,
+    #                                                                                          current_node.state.pos.to_play)
+    #             # Set illegal moves to 0
+    #             current_node.p_distr = goEngineApi.zero_illegal_moves_from_prediction(current_node.state.pos,
+    #                                                                                   current_node.p_distr)
+    #
+    #             # TODO muss mit richtigen werten ersetzt werden
+    #             # if current_node.winner < 0:
+    #             #     current_node.winner = -1
+    #             # else:
+    #             #     current_node.winner = 1
+    #
+    #             # current_node.p_distr = goEngineApi.getSemiMockProbabilities(current_node.state.pos,
+    #             #                                                           current_node.p_distr)
+    #             current_node._number_of_visits = 1
+    #             return current_node
+    #
+    #         # step 2
+    #         if not current_node.is_fully_expanded():
+    #
+    #             while not current_node.is_fully_expanded():
+    #                 current_node.expand()  # Setzen von q,n = 0
+    #
+    #             return current_node
+    #
+    #         # step 3 + 4
+    #         # TODO passt das mit c_puct?
+    #         current_node = current_node.best_child(self.c_puct)  # best_child geht den schritt in das beste kind
+    #
+    #         # -- ALTER PART --
+    #         # # if self.node not in self.visitedNodes:
+    #         # #     self.visitedNodes.append(current_node)
+    #         # #     return current_node
+    #         # if current_node.n == 0:
+    #         #     return current_node
+    #         #
+    #         # #ausprobieren der kinder
+    #         # if not current_node.is_fully_expanded():
+    #         #     return current_node.expand()
+    #         # else:
+    #         #     current_node = current_node.best_child()
+    #
+    #     # außerhalb der while schleife
+    #     if current_node.is_terminal_node():
+    #         current_node.winner = current_node.state.game_result
+    #         #TODO sinnvoll? lieber 0en?
+    #         current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos)  # von NN
+    #
+    #     return current_node
 
 
     def _new_search_function(self, simulations_number):
@@ -155,33 +153,30 @@ class MonteCarloTreeSearch(object):
         iter = 0
         for _ in range(0, simulations_number):
 
+            # Cheat sheet = https://medium.com/applied-data-science/alphago-zero-explained-in-one-diagram-365f5abf67e0
 
-
-            #print("iteration ", iter)
             iter += 1
 
             parent_nodes = self.createHistoryStates(current_node)
 
-            # chid shid 1. step
-            # bestchild aufgerufen bis leaf node -- SOlange es kinder gibt
+            # Cheat sheet 1. step
+            # descend to leaf node (using best_child method) until as long as we have children
             while not len(current_node.children) == 0:
                 current_node = current_node.best_child(self.c_puct)
 
 
             # Init necessary, since winner Value is None initialized
             current_node.winner = 0.0
-            # chid shid 2. step
-            # predicted_winner = v vom chid shid
-            # p_distr = p vom chid shid
+            # Cheat sheet 2. step
+            # predicted_winner = v of the cheat sheet
+            # p_distr = p of the cheat sheet
             predicted_winner, current_node.p_distr = self.net_api.getPredictionFromNN(current_node.state.board,
                                                                                          parent_nodes,
                                                                                          current_node.state.pos.to_play)
-            #TODO: IF NICHT benötigt?
-            if not current_node.is_fully_expanded():
-                while not current_node.is_fully_expanded():
-                    current_node.expand()  # Setzen von q,n = 0
 
-            #
+            while not current_node.is_fully_expanded():
+                current_node.expand()  # Setzen von q,n = 0
+
 
             # chid shid 3. step
             current_node.backpropagate(predicted_winner)
@@ -199,13 +194,15 @@ class MonteCarloTreeSearch(object):
 
         # exploration
         if constants.competitive == 0:
-            highest_n_temperature = -1
+            highest_value = -1
             best_child = None
             for child in self.root.children:
                 n_temperature = pow(child._number_of_visits, (1 / constants.temperature))
-                if n_temperature > highest_n_temperature:
-                    highest_n_temperature = n_temperature
+                if n_temperature > highest_value:
+                    highest_value = n_temperature
                     best_child = child
+
+
         # exploitation
         else:
             highest_visit_count = -1

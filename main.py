@@ -140,6 +140,9 @@ def main(args):
         #wait for finish of threads
         sp.writeTrainingSetsToJsonBuffer(i)
 
+        # now evaluation comes into play -> play as good as possible
+        constants.competitive = 1
+
         # warte auf threads
         # sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
 
@@ -164,6 +167,9 @@ def main(args):
         print("Evaluiere neues Netzwerk")
         print(constants.currentBestNetFileName)
         print(constants.challengerNetFileName)
+
+        # reset competitive for self play exploration
+        constants.competitive = 0
 
 
         goApi.evaluateNet(constants.board_size, -1, constants.currentBestNetFileName, constants.challengerNetFileName)
