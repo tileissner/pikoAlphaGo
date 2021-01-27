@@ -194,7 +194,8 @@ def startGameMCTS(pos, color):
     root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state, move_from_parent=None,
                                                   parent=None)
 
-    mcts = MonteCarloTreeSearch(root, net_api, (1/math.sqrt(2)))
+    #mcts = MonteCarloTreeSearch(root, net_api, (1/math.sqrt(2)))
+    mcts = MonteCarloTreeSearch(root, net_api, 4.0)
     # return coords.from_flat(resultChild.move_from_parent), root.getProbDistributionForChildren(),
 
     move_counter = 0
@@ -229,7 +230,6 @@ def startGameMCTS(pos, color):
             pos = pos.play_move(action, BLACK, False)
             color = WHITE
         # TODO: hier ggf. numpy array direkt in normales array umwandeln
-
 
         print("gewählte aktion {} von {}".format(action, color))
         # print(pos)
@@ -288,36 +288,40 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
 
         # print("Random Number: " + str(randomNum))
 
+
+
         if (color == WHITE):
             #action, probs = chooseActionAccordingToMCTS(pos, currentPlayer.net_api)
             current_player_new_root = currentPlayer.mcts.search_function(constants.mcts_simulations)
-            action = coords.from_flat(current_player_new_root.move_from_parent)
+            action = current_player_new_root.move_from_parent
             #TODO Root des anderen spieler setzen
             # in der evaluation kein trainingsset -> probs nicht benötigt
             #probs = current_player_new_root.parent.getProbDistributionForChildren()
 
             print("gewählte aktion von weiß ", action)
-            pos = pos.play_move(action, WHITE, False)
+            pos = pos.play_move(coords.from_flat(action), WHITE, False)
             for child_node in challengerPlayer_player_new_root.children:
                 if child_node.move_from_parent == action:
                     challengerPlayer_player_new_root = child_node
 
-
             currentPlayer.mcts.root = current_player_new_root
+            currentPlayer.mcts.root = discard_tree(currentPlayer.mcts.root)
             color = BLACK
+
         elif (color == BLACK):
             #action, probs = chooseActionAccordingToMCTS(pos, challengerPlayer.net_api)
             challengerPlayer_player_new_root = challengerPlayer.mcts.search_function(constants.mcts_simulations)
-            action = coords.from_flat(challengerPlayer_player_new_root.move_from_parent)
+            action = challengerPlayer_player_new_root.move_from_parent
             # TODO Root des anderen spieler setzen
             print("gewählte aktion von schwarz ", action)
-            pos = pos.play_move(action, BLACK, False)
+            pos = pos.play_move(coords.from_flat(action), BLACK, False)
 
             for child_node in current_player_new_root.children:
                 if child_node.move_from_parent == action:
                     current_player_new_root = child_node
 
             challengerPlayer.mcts.root = challengerPlayer_player_new_root
+            challengerPlayer.mcts.root = discard_tree(challengerPlayer.mcts.root)
             color = WHITE
 
     # update winner when game is finished for all experiences in this single game

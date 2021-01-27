@@ -24,4 +24,3 @@ competitive = None
 currentBestNetFileName = "models/modeluntrained"
 #currentBestNetFileName = "models/model"
 challengerNetFileName = ""
-

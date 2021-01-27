@@ -83,7 +83,8 @@ class MonteCarloTreeSearchNode(ABC):
             # choices_weights.append((c.q_value / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n)))
             #TODO irgendwas verhindert hier die exploration und aller vorrausicht nach nicht cpuct
             q_value = c.q_value
-            u_value = c_puct * self.p_distr[c.move_from_parent] * math.sqrt((children_visit_count + 1) / (1 + self.n))
+            # u_value = c_puct * self.p_distr[c.move_from_parent] * math.sqrt((children_visit_count) / (1 + self.n))
+            u_value = c_puct * self.p_distr[c.move_from_parent] * math.sqrt(self.n / (1 + children_visit_count))
             #children_value = c.q_value + c_puct * self.p_distr[c.move_from_parent] * math.sqrt((children_visit_count + 1) / (1 + self.n))
             choices_weights.append(q_value + u_value)
             # u = Q[s][a] + c_puct * P[a] * sqrt(sum(N[s])) / (1 + N[s][a])
@@ -138,10 +139,10 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         child_node = TwoPlayersGameMonteCarloTreeSearchNode(
             next_state, action, parent=self
         )
+        # set q, n = 0
         child_node._number_of_visits = 0
         child_node.q_value = 0.0
 
-        # p und v werte werden gesetzt
         self.children.append(child_node)
         return child_node
 
@@ -164,11 +165,6 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         self._number_of_visits += 1.
         # self.w_value = self.w_value + w_value
 
-        # ins blaue gescrieben
-
-        # # TODO is nur ein "bugfix" muss entsprechend geloescht werden
-        # if winner == None:
-        #     winner = self.randomWinner()
 
         self.winner += predicted_winner_value
         #self.q_value = (self._number_of_visits * self.q_value + winner) / (self._number_of_visits)

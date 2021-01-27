@@ -167,16 +167,6 @@ class MonteCarloTreeSearch(object):
             while not len(current_node.children) == 0:
                 current_node = current_node.best_child(self.c_puct)
 
-            # parentStates = []
-            # currentNodeCopy = deepcopy(current_node)
-            #
-            # for i in range(0, constants.state_history_length):
-            #     if currentNodeCopy.parent is not None:
-            #         currentNodeCopy = deepcopy(currentNodeCopy.parent)
-            #         all_zeros = not np.any(currentNodeCopy.state.board)
-            #         equalToParent = np.array_equal(currentNodeCopy.state.board, current_node.state.board)
-            #         if not all_zeros and not equalToParent:
-            #             parentStates.append(currentNodeCopy.state.board)
 
             # Init necessary, since winner Value is None initialized
             current_node.winner = 0.0
@@ -268,32 +258,4 @@ class MonteCarloTreeSearch(object):
         parentStates.append(state_t_1)
         parentStates.append(state_t_2)
         parentStates.append(state_t_3)
-
-        # bauernvariante
-        # state_t_1 = None
-        # state_t_2 = None
-        # state_t_3 = None
-        #
-        # if current_node.parent is not None:
-        #     state_t_1 = current_node.parent.state.board
-        #
-        # if current_node.parent is not None:
-        #     if current_node.parent.parent is not None:
-        #         state_t_2 = current_node.parent.parent.state.board
-        #
-        # if current_node.parent is not None:
-        #     if current_node.parent.parent is not None:
-        #         if current_node.parent.parent.parent is not None:
-        #             state_t_3 = current_node.parent.parent.parent.state.board
-        #
-        # if state_t_1 is None:
-        #     state_t_1 = np.zeros([constants.board_size, constants.board_size], dtype=np.int8)
-        # if state_t_2 is None:
-        #     state_t_2 = np.zeros([constants.board_size, constants.board_size], dtype=np.int8)
-        # if state_t_3 is None:
-        #     state_t_3 = np.zeros([constants.board_size, constants.board_size], dtype=np.int8)
-        #
-        # parentStates.append(state_t_1)
-        # parentStates.append(state_t_2)
-        # parentStates.append(state_t_3)
         return parentStates
