@@ -1,13 +1,8 @@
 #%%
-from components.go import coords
-from components.go.goEngineApi import createGame
-from components.nn.nn_api import NetworkAPI
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras import optimizers
-import os
-import utils.readConfigFile as configFile
 
+import utils.readConfigFile as configFile
+from components.nn.nn_api import NetworkAPI
 from utils import constants
 
 constants.configFileLocation = "/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/config.yaml"

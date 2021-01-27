@@ -133,7 +133,7 @@ def main(args):
         currentBestNetApi = nn_api.NetworkAPI()
         currentBestNetApi.model_load(constants.currentBestNetFileName)
 
-        print("Starte Self-Play mit altem Netzwerk")
+        print("start self-play with old current best network {}".format(constants.currentBestNetFileName))
         sp = selfplay()
         # starts the self play games with the current best network
         sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
