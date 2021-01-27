@@ -9,4 +9,4 @@
 - run *pip3 install -r requirements.txt*
 - Edit config.yaml according to your wishes
 - Run main.py
-- *Optional*: If you want to start 
+- *Optional*: 
