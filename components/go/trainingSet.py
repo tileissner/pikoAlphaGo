@@ -1,4 +1,5 @@
 import json
+import numpy as np
 class TrainingSet:
 
     def __init__(self, state, probabilities, color):
@@ -15,9 +16,6 @@ class TrainingSet:
     def getWinner(self):
         return self.winner
 
-    def saveTrainingSet(self):
-        #TODO hier speichern
-        return
 
     #TODO: Object gets altered in the process. State is saved as list
     # not as np Array anymore. Solution: Inner class or deepcopy?
@@ -40,6 +38,8 @@ class TrainingSet:
 
         for previousState in previousStates:
             self.state.append(previousState.tolist())
+
+        self.probabilities = self.probabilities.tolist()
 
         if not lastElement:
             returnValue = json.dumps(self.__dict__) + ","

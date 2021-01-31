@@ -15,8 +15,9 @@ class NeuralNetwork(Model):
 	def __init__(self):
 		super(NeuralNetwork, self).__init__()
 
-		#TODO initiliazer
-		initializer = tf.keras.initializers.RandomNormal(stddev=0.05, mean=0)
+
+		# predefined seed
+		initializer = tf.keras.initializers.RandomNormal(stddev=0.05, mean=0, seed=8)
 		#initializer = tf.keras.initializers.Zeros()
 		#initializer = tf.keras.initializers.Ones()
 
