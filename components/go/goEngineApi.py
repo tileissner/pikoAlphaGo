@@ -335,7 +335,8 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
             print(pos.board)
             color = BLACK
 
-        elif (color == BLACK):
+        #elif (color == BLACK):
+        else:
             # challengerPlayer_player_new_root = challengerPlayer.mcts._new_search_function(constants.mcts_simulations)
             # action = challengerPlayer_player_new_root.move_from_parent
             # # TODO Root des anderen spieler setzen
@@ -368,8 +369,10 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
 
     winner = pos.result()
     if winner == currentPlayer.color:
+        print(str(currentPlayer.color) + " has won")
         return currentPlayer
     else:
+        print(str(challengerPlayer.color) + " has won")
         return challengerPlayer
     # print(pos.result())
     # print(pos.result_string())
