@@ -1,4 +1,3 @@
-import math
 import random
 
 import numpy as np
@@ -7,7 +6,6 @@ import components.go.coords as coords
 import components.go.go as go
 from components.go.trainingSet import TrainingSet
 from components.mcts.goMCTS import GoGamestate
-from components.mcts.nodes import TwoPlayersGameMonteCarloTreeSearchNode
 from components.mcts.search import MonteCarloTreeSearch
 from components.nn.nn_api import NetworkAPI
 from components.player.player import Player
@@ -29,7 +27,6 @@ def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
     for _ in range(0, constants.amount_evaluator_iterations):
         # Zufällige Auswahl wer beginnt
 
-
         winner = startGameEvaluation(pos, currentPlayer, challengerPlayer)
         if winner == currentPlayer:
             currentPlayerWins += 1
@@ -37,7 +34,7 @@ def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
             challengerPlayerWins += 1
 
     print(str(currentPlayer.color) + " hat " + str(currentPlayerWins) + " wins")
-    #print(currentPlayer.color, " hat ", currentPlayerWins, " wins")
+    # print(currentPlayer.color, " hat ", currentPlayerWins, " wins")
     print(str(challengerPlayer.color) + " hat " + str(challengerPlayerWins) + " wins")
 
     # wenn 55% -> neues model
@@ -47,7 +44,6 @@ def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
         constants.currentBestNetFileName = challengerPlayer.net_api.pathToModel
     else:
         print("neues netz bringt keine verbesserung")
-
 
 
 def selfPlay(board_size, color):
@@ -182,25 +178,23 @@ def startGameMCTS(pos, color):
     net_api = NetworkAPI()
     net_api.model_load(constants.currentBestNetFileName)
 
-
-
     initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
 
     # root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state, move_from_parent=None,
     #                                               parent=None)
 
-    #mcts = MonteCarloTreeSearch(root, net_api, (1/math.sqrt(2)))
+    # mcts = MonteCarloTreeSearch(root, net_api, (1/math.sqrt(2)))
     mcts = MonteCarloTreeSearch(net_api, 4.0, initial_board_state)
     # return coords.from_flat(resultChild.move_from_parent), root.getProbDistributionForChildren(),
 
     move_counter = 0
 
-    while not pos.is_game_over() and move_counter < constants.board_size **2 *2:
+    while not pos.is_game_over() and move_counter < constants.board_size ** 2 * 2:
 
         # print(pos.board)
         # resultChild = mcts.search_function(constants.mcts_simulations)
-        #new_root = mcts.search_function(constants.mcts_simulations)
-        #new_root = mcts._new_search_function(constants.mcts_simulations)
+        # new_root = mcts.search_function(constants.mcts_simulations)
+        # new_root = mcts._new_search_function(constants.mcts_simulations)
         root = mcts.search_mcts_function()
 
         action_probs = [0 for _ in range(constants.board_size * constants.board_size + 1)]
@@ -215,21 +209,20 @@ def startGameMCTS(pos, color):
         print("move counter {}".format(move_counter))
         print("chosen action {} by {}".format(action, pos.to_play * (-1)))
         # print(pos)
-        print(pos.board)
-        #state, current_player = self.game.get_next_state(state, current_player, action)
-        #reward = self.game.get_reward_for_player(state, current_player)
+        # print(pos.board)
+        # state, current_player = self.game.get_next_state(state, current_player, action)
+        # reward = self.game.get_reward_for_player(state, current_player)
 
-        #action = coords.from_flat(new_root.move_from_parent)
-        #probs = new_root.parent.getProbDistributionForChildren()
+        # action = coords.from_flat(new_root.move_from_parent)
+        # probs = new_root.parent.getProbDistributionForChildren()
 
-        #new_root = discard_tree(new_root)
+        # new_root = discard_tree(new_root)
 
-        #root = new_root
-        #mcts.root = new_root
-        #action, probs = chooseActionAccordingToMCTS(pos, net_api, root)
+        # root = new_root
+        # mcts.root = new_root
+        # action, probs = chooseActionAccordingToMCTS(pos, net_api, root)
 
-        #GetMoveProbablitiesFrom MCTS
-
+        # GetMoveProbablitiesFrom MCTS
 
         # # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
         # currentColor = color
@@ -241,12 +234,9 @@ def startGameMCTS(pos, color):
         #     pos = pos.play_move(action, BLACK, False)
         #     color = WHITE
 
-
-
         newTrainingSet = TrainingSet(pos.board, action_probs, pos.to_play)
         trainingSet.append(newTrainingSet)
         move_counter = move_counter + 1
-
 
     print("gespielte züge {}".format(move_counter))
 
@@ -264,7 +254,6 @@ def startGameMCTS(pos, color):
 def startGameEvaluation(pos, currentPlayer, challengerPlayer):
     # currentPlayer = WHITE = -1
     # challengerPlayer = BLACK = 1
-
 
     color = None
     if randomStartPlayer() == currentPlayer.color:
@@ -287,15 +276,13 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
     currentPlayer.mcts = MonteCarloTreeSearch(currentPlayer.net_api, 0.0, initial_board_state)
     challengerPlayer.mcts = MonteCarloTreeSearch(challengerPlayer.net_api, 0.0, initial_board_state)
 
-    #TODO needed?
-    #challengerPlayer_player_new_root.expand()
-    #current_player_new_root.expand()
-
-
+    # TODO needed?
+    # challengerPlayer_player_new_root.expand()
+    # current_player_new_root.expand()
 
     move_counter = 0
 
-    while not pos.is_game_over() and move_counter < constants.board_size **2 *2:
+    while not pos.is_game_over() and move_counter < constants.board_size ** 2 * 2:
 
         # current_player_new_root = mcts_current_player.search_function(constants.mcts_simulations)
         # challenger_player_new_root = mcts_challenger_player.search_function(constants.mcts_simulations)
@@ -303,8 +290,6 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
         # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
 
         # print("Random Number: " + str(randomNum))
-
-
 
         if (color == WHITE):
             # current_player_new_root = currentPlayer.mcts._new_search_function(constants.mcts_simulations)
@@ -335,7 +320,7 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
             print(pos.board)
             color = BLACK
 
-        #elif (color == BLACK):
+        # elif (color == BLACK):
         else:
             # challengerPlayer_player_new_root = challengerPlayer.mcts._new_search_function(constants.mcts_simulations)
             # action = challengerPlayer_player_new_root.move_from_parent
@@ -381,11 +366,8 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
 
 
 def chooseActionAccordingToMCTS(pos, nn_api, root):
-
-
     mcts = MonteCarloTreeSearch(root, nn_api)
     resultChild = mcts.search_function(constants.mcts_simulations)
-
 
     # for node in aktuellem node:
     #     wenn nicht resultChild:
@@ -397,7 +379,8 @@ def chooseActionAccordingToMCTS(pos, nn_api, root):
 
 def randomStartPlayer():
     return 1 if random.random() < 0.5 else -1
-    #return 1
+    # return 1
+
 
 def discard_tree(node):
     """

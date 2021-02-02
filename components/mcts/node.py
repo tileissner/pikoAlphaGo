@@ -153,7 +153,8 @@ class MCTS:
             # next_state = self.go_game_state.get_canonical_board(next_state, player=-1)
 
             # The value of the new state from the perspective of the other player
-            winner = self.go_game_state.get_reward_for_player()
+            winner = next_go_game_state.get_reward_for_player()
+
             if winner is None:
                 # If the game has not ended:
                 # EXPAND
