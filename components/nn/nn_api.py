@@ -8,7 +8,7 @@ from tensorflow.keras import optimizers
 
 import components.nn.nn_model as nn_model
 from utils import constants
-
+from split_input import split_input
 
 class NetworkAPI:
     ALL_STATES = None
@@ -151,7 +151,8 @@ class NetworkAPI:
         # state = state.reshape(1, 5, 5, 1)
 
         inputList = np.array(inputList)
-        inputList = np.float64(inputList)
+        inputList = np.float64(inputList) #ein input stack (als array)
+        inputList = split_input(inputList)
         inputList = inputList.reshape(1, constants.board_size, constants.board_size, constants.input_stack_size)
 
         winner, probs = self.net.predict(inputList)

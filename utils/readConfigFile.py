@@ -18,8 +18,10 @@ def readConfigFile(location):
             constants.epochs = param_list['epochs']
             constants.temperature = param_list['temperature']
             constants.competitive = param_list['competitive']
+            constants.input_states = param_list['input_states']
+            constants.games_per_thread = param_list['games_per_thread']
 
-            constants.input_stack_size = constants.state_history_length + 2
+            constants.input_stack_size = constants.input_states * 2 + 1
 
 
         except yaml.YAMLError as exc:

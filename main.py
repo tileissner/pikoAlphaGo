@@ -2,13 +2,13 @@ import os
 import sys
 import threading
 import time
+from multiprocessing.process import current_process
 
 import components.go.goEngineApi as goApi
 import components.nn.nn_api as nn_api
 import utils.constants as constants
 import utils.readConfigFile as configFile
 import numpy as np
-
 
 WHITE, NONE, BLACK = range(-1, 2)
 
@@ -25,13 +25,15 @@ class selfplay:
 
     def startSelfPlayGame(self, file_name, board_size, color):
         # selfplay test with hardcoded beginner (black)
-        trainingSet = goApi.selfPlay(board_size, color)
-        self.trainingSetList.append(trainingSet)
+        for i in range(0, constants.games_per_thread):
+            trainingSet = goApi.selfPlay(board_size, color)
+            self.trainingSetList.append(trainingSet)
 
-        if trainingSet[-1].winner == -1:
-            self.winsblack += 1
-        else:
-            self.winswhite += 1
+            if trainingSet[-1].winner == -1:
+                self.winsblack += 1
+            else:
+                self.winswhite += 1
+            print("{}. game von prozess fertig gespielt".format(i))
         #
         # with open(file_name, 'a', 1) as f:
         #     index = 0
@@ -122,7 +124,7 @@ def main(args):
     #sobald diese shape übergeben wurde kann das untrainierte netz gespeichert werden
     initial_input_shape = (1, constants.board_size, constants.board_size, constants.input_stack_size)
     untrained_net.create_net(initial_input_shape)
-    dummy_state = [[0, 0, 0, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+    dummy_state = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
     winner_test, probs_test = untrained_net.getPredictionFromNN(dummy_state, [], BLACK)
     constants.currentBestNetFileName = untrained_net.save_model("untrained")
 
@@ -216,8 +218,6 @@ def writeHistoryStates(trainingSet, index, lastElement):
         previousStatesFilled.append(color_b)
     else:
         previousStatesFilled.append(color_w)
-
-
 
     # die fehlenden 0er listen als history auffuellen -> gleiche anzahl an history in jedem state (auch zb  im ersten state)
     for elem in previousStatesFilled:

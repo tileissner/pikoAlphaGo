@@ -1,5 +1,8 @@
 import json
 import numpy as np
+from split_input import split_input
+
+
 class TrainingSet:
 
     def __init__(self, state, probabilities, color):
@@ -39,7 +42,13 @@ class TrainingSet:
         for previousState in previousStates:
             self.state.append(previousState.tolist())
 
-        self.probabilities = self.probabilities.tolist()
+        self.state = np.array(self.state)
+        self.state = split_input(self.state)
+        self.state = self.state.tolist()
+
+        #TODO warum im 1. durchlauf array und danach liste?
+        if not isinstance(self.probabilities, list):
+            self.probabilities = self.probabilities.tolist()
 
         if not lastElement:
             returnValue = json.dumps(self.__dict__) + ","
@@ -60,7 +69,7 @@ class TrainingSet:
 
     def createProbability2DArray(self, probabilities):
         twoDimensionalProbabilities = []
-        for i in range(0, len(probabilities) -1, 5):
+        for i in range(0, len(probabilities)-1, 5):
             twoDimensionalProbabilities.append(probabilities[i:i+5])
 
         #print(twoDimensionalProbabilities)

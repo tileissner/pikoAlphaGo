@@ -4,6 +4,7 @@ configFileLocation = ''
 board_size = None
 location_replay_buffer = None
 thread_count = None
+games_per_thread = None
 
 Q = None
 mcts_simulations = None
@@ -20,6 +21,7 @@ epochs = None
 temperature = None
 competitive = None
 
+input_states = None
 
 currentBestNetFileName = "models/modeluntrained"
 #currentBestNetFileName = "models/model"
