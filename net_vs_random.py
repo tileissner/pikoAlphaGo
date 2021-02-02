@@ -1,23 +1,23 @@
-from components.go.goEngineApi import createGame
 import random
+
+import matplotlib.pyplot as plt
+
 import components.go.coords as coords
+import utils.readConfigFile as configFile
+from components.go.goEngineApi import createGame
 from components.mcts.goMCTS import GoGamestate
-from components.mcts.nodes import TwoPlayersGameMonteCarloTreeSearchNode
 from components.mcts.search import MonteCarloTreeSearch
 from components.nn.nn_api import NetworkAPI
 from components.player.player import Player
 from utils import constants
-import utils.readConfigFile as configFile
-
-import matplotlib.pyplot as plt
 
 WHITE, NONE, BLACK = range(-1, 2)
-currentNetFileName = "/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/components/nn/models/model20210124-180819"
+currentNetFileName = "/home/marcel/Dokumente/model20210202-202714"
 nn_api = NetworkAPI()
 nn_api.model_load(currentNetFileName)
 
-constants.configFileLocation = "/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/config.yaml"
 # read config file and store it in constants.py
+constants.configFileLocation = "config.yaml"
 configFile.readConfigFile(constants.configFileLocation)
 
 
@@ -29,7 +29,7 @@ def evaluateNet(board_size, netColor, currentNetFileName):
     draws = 0
 
     netPlayer = Player(netColor, currentNetFileName)
-    randomPlayer = Player(netColor*-1, currentNetFileName)
+    randomPlayer = Player(netColor * -1, currentNetFileName)
     colorstring = "BLACK" if netColor is BLACK else "WHITE"
     randomcolorstring = "WHITE" if netColor is BLACK else "BLACK"
 
@@ -37,25 +37,31 @@ def evaluateNet(board_size, netColor, currentNetFileName):
         # Zufällige Auswahl wer beginnt
         winner, score = startGameEvaluation(pos, BLACK, netPlayer, randomPlayer)
         if winner is not None:
-            print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            print(
+                "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             print("BLACK" if winner.color == 1 else "WHITE", "won with a score of", score)
-            print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            print(
+                "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         elif winner is None:
-            print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            print(
+                "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             print("DRAW!")
-            print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            print(
+                "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         if winner == netPlayer:
             netWins += 1
         elif winner == randomPlayer:
             randomPlayerWins += 1
         elif winner == None:
-            draws+=1
+            draws += 1
     print("Net won", netWins, "out of", constants.amount_evaluator_iterations, "games with", colorstring)
-    print("Random player won", randomPlayerWins, "out of", constants.amount_evaluator_iterations, "games with", randomcolorstring)
+    print("Random player won", randomPlayerWins, "out of", constants.amount_evaluator_iterations, "games with",
+          randomcolorstring)
     print(draws, "games were drawn.")
-    createPlot(netWins,randomPlayerWins,draws)
+    createPlot(netWins, randomPlayerWins, draws)
 
-def createPlot(netWins,randomPlayerwins,draws):
+
+def createPlot(netWins, randomPlayerwins, draws):
     if draws == 0:
         labels = 'Net wins', 'Random player wins'
         sizes = [netWins, randomPlayerwins]
@@ -69,43 +75,47 @@ def createPlot(netWins,randomPlayerwins,draws):
     plt.title("Winners of " + str(constants.amount_evaluator_iterations) + " games")
     plt.savefig("winnerdiagram.jpg")
 
+
 def startGameEvaluation(pos, color, netPlayer, randomPlayer):
+    initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+    mcts = MonteCarloTreeSearch(nn_api, 0.0, initial_board_state)
+
     while not pos.is_game_over():
-        if (color == WHITE):
-            if(netPlayer.color==WHITE):
-                coord, probdist = chooseActionAccordingToMCTS(pos, nn_api)
-                pos = pos.play_move(coord)
-                print("Net played: ", coord)
+        if color == WHITE:
+            if netPlayer.color == WHITE:
+                root = mcts.search_mcts_function()
+                action = root.select_action(temperature=0)
+                pos = pos.play_move(coords.from_flat(action))
                 color = BLACK
             else:
                 validMoveList = pos.all_legal_moves().tolist()
                 validMoveIndices = [i for i, e in enumerate(validMoveList) if e == 1]
-                randomnumber = random.randint(0, len(validMoveIndices)-1)
-                #print("Random: ", randomnumber)
-                #print("Random move: ", validMoveIndices[randomnumber])
+                randomnumber = random.randint(0, len(validMoveIndices) - 1)
+                # print("Random: ", randomnumber)
+                # print("Random move: ", validMoveIndices[randomnumber])
                 coord = coords.from_flat(validMoveIndices[randomnumber])
                 pos = pos.play_move(coord)
                 print("Random player played: ", coord)
                 color = BLACK
 
-        elif (color == BLACK):
-            if(netPlayer.color==BLACK):
-                coord, probdist = chooseActionAccordingToMCTS(pos, nn_api)
-                pos = pos.play_move(coord)
-                print("Net played: ", coord)
+        elif color == BLACK:
+            if netPlayer.color == BLACK:
+                root = mcts.search_mcts_function()
+                action = root.select_action(temperature=0)
+                pos = pos.play_move(coords.from_flat(action))
+                print("Net played: ", action)
                 color = WHITE
             else:
                 validMoveList = pos.all_legal_moves().tolist()
                 validMoveIndices = [i for i, e in enumerate(validMoveList) if e == 1]
-                randomnumber = random.randint(0, len(validMoveIndices)-1)
-                #print("Random: ", randomnumber)
-                #print("Random move: ", validMoveIndices[randomnumber])
+                randomnumber = random.randint(0, len(validMoveIndices) - 1)
+                # print("Random: ", randomnumber)
+                # print("Random move: ", validMoveIndices[randomnumber])
                 coord = coords.from_flat(validMoveIndices[randomnumber])
                 pos = pos.play_move(coord)
                 print("Random player played: ", coord)
                 color = WHITE
-
-
+        mcts.go_game_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
 
     # update winner when game is finished for all experiences in this single game
 
@@ -117,16 +127,6 @@ def startGameEvaluation(pos, color, netPlayer, randomPlayer):
     elif winner == randomPlayer.color:
         return randomPlayer, pos.score()
 
-def chooseActionAccordingToMCTS(pos, nn_api):
-    initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
 
-    root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state, move_from_parent=None,
-                                                  parent=None)
-    mcts = MonteCarloTreeSearch(root, nn_api)
-    resultChild = mcts.search_function(constants.mcts_simulations)
-
-    return coords.from_flat(resultChild.move_from_parent), root.getProbDistributionForChildren()
-
-
-
-evaluateNet(5,BLACK,currentNetFileName)
+# net player = black
+evaluateNet(constants.board_size, BLACK, currentNetFileName)
