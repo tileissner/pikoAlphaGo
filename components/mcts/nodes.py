@@ -68,11 +68,9 @@ class MonteCarloTreeSearchNode(ABC):
         # choices weights = upper confidents bounds
 
         # Berechnung von u Wert nach Formel (--> Befragen des NN an dieser Stelle / hereingeben)
-        # TODO: Verwendung der Knotenwerte die durch NN bereitgestellt werden + generell Formel anpassen (https://web.stanford.edu/~surag/posts/alphazero.html)
         choices_weights = []
         children_visit_count = 0
 
-        # TODO ggf. mit sum funktion perfektioniereN?
         for c in self.children:
             children_visit_count = children_visit_count + c._number_of_visits
         # children_visit_count = sum(self.children._number_of_visits)
@@ -81,10 +79,9 @@ class MonteCarloTreeSearchNode(ABC):
             # if c.n == 0:
             # c._number_of_visits = 1
             # choices_weights.append((c.q_value / c.n) + c_param * np.sqrt((2 * np.log(self.n) / c.n)))
-            #TODO irgendwas verhindert hier die exploration und aller vorrausicht nach nicht cpuct
             q_value = c.q_value
             # u_value = c_puct * self.p_distr[c.move_from_parent] * math.sqrt((children_visit_count) / (1 + self.n))
-            u_value = c_puct * self.p_distr[c.move_from_parent] * math.sqrt(self.n / (1 + children_visit_count))
+            u_value = c_puct * self.p_distr[c.move_from_parent] * math.sqrt(self.n) / (1 + children_visit_count)
             #children_value = c.q_value + c_puct * self.p_distr[c.move_from_parent] * math.sqrt((children_visit_count + 1) / (1 + self.n))
             choices_weights.append(q_value + u_value)
             # u = Q[s][a] + c_puct * P[a] * sqrt(sum(N[s])) / (1 + N[s][a])
@@ -94,9 +91,32 @@ class MonteCarloTreeSearchNode(ABC):
         #     for c in self.children
         # ]
             # Zurückgeben der besten Aktion (enthalten in children) auf Basis d. berechneten u-wertes
-        # TODO argmax sollte den hoechsten wert zuerueckgeben, tut es aber nicht anscheinend
 
         bestchild = self.children[np.argmax(choices_weights)]
+        return bestchild  # , best_action
+
+    def new_best_child(self, c_puct):
+        # c_param = 0 --> exploitation
+        # c_param irgendwas = exploration
+        # choices weights = upper confidents bounds
+
+        # Berechnung von u Wert nach Formel (--> Befragen des NN an dieser Stelle / hereingeben)
+        choices_weights = []
+        children_visit_count = 0
+
+
+        for key, value in self.child_visit_count_dict.items():
+            children_visit_count = children_visit_count + value
+        # children_visit_count = sum(self.children._number_of_visits)
+
+        for key, value in self.child_q_value_dict.items():
+            # key = action, value = q value
+            q_value = value
+            # u_value = c_puct * self.p_distr[c.move_from_parent] * math.sqrt((children_visit_count) / (1 + self.n))
+            u_value = c_puct * self.p_distr[key] * (math.sqrt(self.n) / (1 + children_visit_count))
+            #children_value = c.q_value + c_puct * self.p_distr[c.move_from_parent] * math.sqrt((children_visit_count + 1) / (1 + self.n))
+            choices_weights.append(q_value + u_value)
+        bestchild = np.argmax(choices_weights)
         return bestchild  # , best_action
 
 
@@ -109,9 +129,20 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         self._untried_actions = None
         self.q_value = 0.
         self.p_distr = []
-        self.winner = None
-        self.w_value = 0.
+        self.winner = 0
+        #self.w_value = 0.
         self.move_from_parent = move_from_parent
+
+        # structure: key = action, value = q value
+        self.child_q_value_dict = {}
+        # structure: key = action, value = visit count
+        self.child_visit_count_dict = {}
+
+        # set q value of all childs to 0
+        for action in self.untried_actions():
+            self.child_q_value_dict[action] = 0
+            self.child_visit_count_dict[action] = 0
+
 
     @property
     # All Possible Moves --> Fill untried with lega actions.
@@ -122,10 +153,7 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
 
     @property
     def q(self, action):
-        # Q[s][a] = (N[s][a]*Q[s][a] + v)/(N[s][a]+1) #alphazero easy
-        wins = self._results[self.parent.state.next_to_move]
-        loses = self._results[-1 * self.parent.state.next_to_move]
-        return self.w_value / self._number_of_visits
+        return self.winner / self._number_of_visits
 
     @property
     def n(self):
@@ -139,15 +167,34 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
         child_node = TwoPlayersGameMonteCarloTreeSearchNode(
             next_state, action, parent=self
         )
+        # TODO: still needed?
         # set q, n = 0
         child_node._number_of_visits = 0
         child_node.q_value = 0.0
 
+
         self.children.append(child_node)
         return child_node
 
-    def get_q_value(self):
-        return self.w_value / (self._number_of_visits + 1.0)  # TODO: +1.0 noch unklar?
+    def expand_specific_child(self, action):
+        # TODO: stimmt der index?
+        self._untried_actions = np.delete(action)
+
+        next_state = self.state.move(action)
+        child_node = TwoPlayersGameMonteCarloTreeSearchNode(
+            next_state, action, parent=self
+        )
+        # TODO: still needed?
+        # set q, n = 0
+        child_node._number_of_visits = 0
+        child_node.q_value = 0.0
+
+
+        self.children.append(child_node)
+        return child_node
+
+    # def get_q_value(self):
+    #     return self.w_value / (self._number_of_visits + 1.0)
 
     def is_terminal_node(self):
         return self.state.is_game_over()
@@ -162,35 +209,45 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
 
     def backpropagate(self, predicted_winner_value):
 
+
         self._number_of_visits += 1.
         # self.w_value = self.w_value + w_value
 
 
         self.winner += predicted_winner_value
         #self.q_value = (self._number_of_visits * self.q_value + winner) / (self._number_of_visits)
+
+        # TODO: richtiger q wert?
+        #self.q_value = (self._number_of_visits * self.q_value + winner) / (self.n)
         self.q_value = self.winner / (self._number_of_visits)
-        # TODO: Set correct Q-Value
+
+
+        # TODO: werden die so gesetzt? stimmt move from parent oder muss parent.move_from_parent?
+        self.child_q_value_dict[self.move_from_parent] = 0
+        self.child_visit_count_dict[self.move_from_parent] = self.child_visit_count_dict[self.move_from_parent] + 1
 
         if self.parent:
-            self.parent.backpropagate(predicted_winner_value)
+            #self.parent.backpropagate(predicted_winner_value)
+            # TODO inversen wert prüfen
+            self.parent.backpropagate(-predicted_winner_value)
 
     def randomWinner(self):
         return 1 if random() < 0.5 else -1
 
 
-    def getProbDistributionForChildren(self):
-        number_of_visits_for_children = [0.] * 26
-
-
-        #Iterate over children and get move from parent
-        for c in self.children:
-            children_visit_count = c._number_of_visits
-            index_in_array = c.move_from_parent
-            number_of_visits_for_children[index_in_array] = children_visit_count
-
-
-        probs_from_mcts = [number_of_visits_for_children[i]/sum(number_of_visits_for_children) for i in range(len(number_of_visits_for_children))]
-
-        return probs_from_mcts
+    # def getProbDistributionForChildren(self):
+    #     number_of_visits_for_children = [0.] * 26
+    #
+    #
+    #     #Iterate over children and get move from parent
+    #     for c in self.children:
+    #         children_visit_count = c._number_of_visits
+    #         index_in_array = c.move_from_parent
+    #         number_of_visits_for_children[index_in_array] = children_visit_count
+    #
+    #
+    #     probs_from_mcts = [number_of_visits_for_children[i]/sum(number_of_visits_for_children) for i in range(len(number_of_visits_for_children))]
+    #
+    #     return probs_from_mcts
 
 

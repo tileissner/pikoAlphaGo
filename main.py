@@ -122,7 +122,7 @@ def main(args):
     #sobald diese shape übergeben wurde kann das untrainierte netz gespeichert werden
     initial_input_shape = (1, constants.board_size, constants.board_size, constants.input_stack_size)
     untrained_net.create_net(initial_input_shape)
-    dummy_state = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+    dummy_state = [[0, 0, 0, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
     winner_test, probs_test = untrained_net.getPredictionFromNN(dummy_state, [], BLACK)
     constants.currentBestNetFileName = untrained_net.save_model("untrained")
 

@@ -52,6 +52,9 @@ class TwoPlayersAbstractGameState(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_reward_for_player(self):
+        pass
 
 class AbstractGameAction(ABC):
     pass

@@ -2,12 +2,14 @@ from random import random
 
 import numpy as np
 
+from components.mcts.node import MCTS
 from utils import constants
 
 
 class MonteCarloTreeSearch(object):
 
-    def __init__(self, node, net_api, c_puct):
+    #def __init__(self, node, net_api, c_puct, go_game_state):
+    def __init__(self, net_api, c_puct, go_game_state):
         """
         MonteCarloTreeSearchNode
         Parameters
@@ -15,10 +17,11 @@ class MonteCarloTreeSearch(object):
         node : mctspy.tree.nodes.MonteCarloTreeSearchNode
         """
 
-        self.root = node
+        #self.root = node
 
         self.net_api = net_api
         self.c_puct = c_puct
+        self.go_game_state = go_game_state
 
     # ehemals best_action
     def search_function(self, simulations_number):
@@ -33,7 +36,6 @@ class MonteCarloTreeSearch(object):
         -------
 
         """
-        # TODO: Fall Terminal Node abfangen
         count = 0
         for _ in range(0, simulations_number):
             v = self._tree_policy()
@@ -94,7 +96,7 @@ class MonteCarloTreeSearch(object):
     #             current_node.p_distr = goEngineApi.zero_illegal_moves_from_prediction(current_node.state.pos,
     #                                                                                   current_node.p_distr)
     #
-    #             # TODO muss mit richtigen werten ersetzt werden
+    #
     #             # if current_node.winner < 0:
     #             #     current_node.winner = -1
     #             # else:
@@ -114,7 +116,7 @@ class MonteCarloTreeSearch(object):
     #             return current_node
     #
     #         # step 3 + 4
-    #         # TODO passt das mit c_puct?
+    #
     #         current_node = current_node.best_child(self.c_puct)  # best_child geht den schritt in das beste kind
     #
     #         # -- ALTER PART --
@@ -133,11 +135,14 @@ class MonteCarloTreeSearch(object):
     #     # außerhalb der while schleife
     #     if current_node.is_terminal_node():
     #         current_node.winner = current_node.state.game_result
-    #         #TODO sinnvoll? lieber 0en?
+    #
     #         current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos)  # von NN
     #
     #     return current_node
 
+    def search_mcts_function(self):
+        mcts = MCTS(self.go_game_state, self.net_api, self.c_puct)
+        return mcts.run(self.net_api, self.go_game_state, self.go_game_state.pos.to_play)
 
     def _new_search_function(self, simulations_number):
         """
@@ -149,7 +154,6 @@ class MonteCarloTreeSearch(object):
 
         """
         current_node = self.root
-
         iter = 0
         for _ in range(0, simulations_number):
 
@@ -161,12 +165,19 @@ class MonteCarloTreeSearch(object):
 
             # Cheat sheet 1. step
             # descend to leaf node (using best_child method) until as long as we have children
-            while not len(current_node.children) == 0:
-                current_node = current_node.best_child(self.c_puct)
+            # SELECT PHASE
+            while len(current_node.children) > 0:
+                action = current_node.new_best_child(self.c_puct)
+                #current_node = current_node.new_best_child(self.c_puct)
+                already_exists_in_tree = False
+                for child in current_node.children:
+                    if child.move_from_parent == action:
+                        current_node = child
+                        already_exists_in_tree = True
+                # if node is not connected to our tree yet, expand it
+                if not already_exists_in_tree:
+                    current_node = current_node.expand_specific_child(action)
 
-
-            # Init necessary, since winner Value is None initialized
-            current_node.winner = 0.0
             # Cheat sheet 2. step
             # predicted_winner = v of the cheat sheet
             # p_distr = p of the cheat sheet
@@ -174,33 +185,46 @@ class MonteCarloTreeSearch(object):
                                                                                          parent_nodes,
                                                                                          current_node.state.pos.to_play)
 
-            while not current_node.is_fully_expanded():
+            #while not current_node.is_fully_expanded():
+            if not current_node.is_fully_expanded():
                 current_node.expand()  # Setzen von q,n = 0
 
 
-            # chid shid 3. step
+            # Cheat sheet 3. step
             current_node.backpropagate(predicted_winner)
-            current_node = self.root
+            #current_node = self.root
 
 
 
-            #TODO: Überprüfung in while schleife?
 
-            # if current_node.is_terminal_node():
-            #     current_node.winner = current_node.state.game_result
-            #     # TODO sinnvoll? lieber 0en?
-            #     current_node.p_distr = goEngineApi.getMockProbabilities(current_node.state.pos)  # von NN
-
+        probs = self.getProbDistributionForChildren()
+        # TODO: alternative: höchster q wert
 
         # exploration
         if constants.competitive == 0:
-            highest_value = -1
-            best_child = None
-            for child in self.root.children:
-                n_temperature = pow(child._number_of_visits, (1 / constants.temperature))
-                if n_temperature > highest_value:
-                    highest_value = n_temperature
-                    best_child = child
+            probs = self.getProbDistributionForChildrenInExplorationMode()
+            max_prob = 0.
+            index = 0
+            best_action = -1
+            for prob in probs:
+                if prob > max_prob:
+                    max_prob = prob
+                    best_action = index
+                index += 1
+
+            return best_action, probs
+
+            # highest_value = -1
+            # best_child = None
+            # # TODO:
+            # # bsp: 66% und 33%
+            # # wahrscheinlichkeitsgenerator -> zwischen 0-66% -> dieser zug, andernfalls der andere
+            # # für t = 1
+            # for child in self.root.children:
+            #     n_temperature = pow(child._number_of_visits, (1 / constants.temperature))
+            #     if n_temperature > highest_value:
+            #         highest_value = n_temperature
+            #         best_child = child
 
 
         # exploitation
@@ -214,16 +238,37 @@ class MonteCarloTreeSearch(object):
 
         #action wäre best_child.move_from_parent
 
-
-
-
-        # TODO wieso self.root zurückgeben?
-        # return self.root
+        # return self.root #sollte keinen sinn ergeben oder?
         return best_child
 
 
 
+    def getProbDistributionForChildrenInExplorationMode(self):
+        number_of_visits_for_children = [0.] * 26
 
+
+        #Iterate over children and get move from parent
+        for c in self.root:
+            index_in_array = c.move_from_parent
+            number_of_visits_for_children[index_in_array] = pow(c._number_of_visits, (1/constants.temperature))
+
+
+        probs_from_mcts = [number_of_visits_for_children[i]/sum(number_of_visits_for_children) for i in range(len(number_of_visits_for_children))]
+        return probs_from_mcts
+
+    def getProbDistributionForChildrenInCompetitiveMode(self):
+        number_of_visits_for_children = [0.] * 26
+
+
+        #Iterate over children and get move from parent
+        for c in self.root:
+            children_visit_count = c._number_of_visits
+            index_in_array = c.move_from_parent
+            number_of_visits_for_children[index_in_array] = children_visit_count
+
+
+        probs_from_mcts = [number_of_visits_for_children[i]/sum(number_of_visits_for_children) for i in range(len(number_of_visits_for_children))]
+        return probs_from_mcts
 
     def randomWinner(self):
         return 1 if random() < 0.5 else -1
