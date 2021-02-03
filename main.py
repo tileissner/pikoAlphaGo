@@ -122,7 +122,7 @@ def main(args):
     #diese input_shape wird allerdings erst übernommen wenn das model genutzt wurde
     #wir lassen also predicten mit dummy variablen damit die input_shape ans netz übergeben wird
     #sobald diese shape übergeben wurde kann das untrainierte netz gespeichert werden
-    initial_input_shape = (1, constants.board_size, constants.board_size, constants.input_stack_size)
+    initial_input_shape = (1, constants.input_stack_size, constants.board_size, constants.board_size)
     untrained_net.create_net(initial_input_shape)
     dummy_state = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
     winner_test, probs_test = untrained_net.getPredictionFromNN(dummy_state, [], BLACK)
@@ -158,11 +158,11 @@ def main(args):
         challengerNetApi = nn_api.NetworkAPI()
         challengerNetApi.load_data()  # werte initialisiert
         challengerNetApi.net = currentBestNetApi.net
-        winner_loaded_test, probs_loaded_test = challengerNetApi.getPredictionFromNN(dummy_state, [], BLACK)
+
         #challengerNetApi.create_net()
         print("Trainiere neues Netzwerk")
         challengerNetApi.train_model(challengerNetApi.ALL_STATES, [challengerNetApi.WINNER, challengerNetApi.MOVES])
-        winner_loaded_trained, probs_loaded_trained = challengerNetApi.getPredictionFromNN(dummy_state, [], BLACK)
+
         challengerNetApi.save_model()
         # neues netz wurde erstellt -> wird zum challenger netz
 

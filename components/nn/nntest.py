@@ -4,6 +4,7 @@ import numpy as np
 import utils.readConfigFile as configFile
 from components.nn.nn_api import NetworkAPI
 from utils import constants
+from split_input import split_input
 
 constants.configFileLocation = "/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/config.yaml"
 # read config file and store it in constants.py
@@ -11,19 +12,28 @@ configFile.readConfigFile(constants.configFileLocation)
 
 all_states = []
 empty_board = [[[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]], [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]]]
+empty_board = np.array(empty_board)
+empty_board = split_input(empty_board)
 zug_acht = [[[0, 0, 0, 0, 0], [0, -1, -1, 1, 0], [0, 1, 1, 0, 0], [0, -1, 1, 0, 0], [0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0], [0, -1, -1, 0, 0], [0, 1, 1, 0, 0], [0, -1, 1, 0, 0], [0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0], [0, -1, 0, 0, 0], [0, 1, 1, 0, 0], [0, -1, 1, 0, 0], [0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0], [0, -1, 0, 0, 0], [0, 0, 1, 0, 0], [0, -1, 1, 0, 0], [0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]]
+zug_acht = np.array(zug_acht)
+zug_acht = split_input(zug_acht)
 zug_sechzehn = [[[0, 0, 0, -1, 0], [0, -1, -1, 1, 0], [-1, 1, 1, 1, 0], [0, -1, 1, 0, -1], [-1, 1, 1, 0, 0]], [[0, 0, 0, -1, 0], [0, -1, -1, 1, 0], [-1, 1, 1, 1, 0], [0, -1, 1, 0, -1], [-1, 0, 1, 0, 0]], [[0, 0, 0, -1, 0], [0, -1, -1, 1, 0], [-1, 1, 1, 1, 0], [1, -1, 1, 0, -1], [0, 0, 1, 0, 0]], [[0, 0, 0, -1, 0], [0, -1, -1, 1, 0], [-1, 1, 1, 1, 0], [0, -1, 1, 0, -1], [0, 0, 1, 0, 0]], [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]]
+zug_sechzehn = np.array(zug_sechzehn)
+zug_sechzehn = split_input(zug_sechzehn)
 zug_22 = [[[0, 1, 1, -1, 0], [1, 0, 0, 1, 0], [0, 1, 1, 1, 0], [-1, 0, 1, -1, -1], [0, 1, 1, 0, 0]], [[0, 1, 0, -1, 0], [1, -1, -1, 1, 0], [0, 1, 1, 1, 0], [-1, 0, 1, -1, -1], [0, 1, 1, 0, 0]], [[0, 1, 0, -1, 0], [1, -1, -1, 1, 0], [0, 1, 1, 1, 0], [-1, 0, 1, 0, -1], [0, 1, 1, 0, 0]], [[0, 0, 0, -1, 0], [1, -1, -1, 1, 0], [0, 1, 1, 1, 0], [-1, 0, 1, 0, -1], [0, 1, 1, 0, 0]], [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]]
+zug_22 = np.array(zug_22)
+zug_22 = split_input(zug_22)
 
 all_states.append(empty_board)
 all_states.append(zug_acht)
 all_states.append(zug_sechzehn)
 all_states.append(zug_22)
+all_states = np.array(all_states)
 
 def getPredictionFromNN(net, state):
     state = np.array(state)
     state = np.float64(state)
-    state = state.reshape(1, constants.board_size, constants.board_size, constants.input_stack_size)
+    state = state.reshape(1,  constants.input_stack_size, constants.board_size, constants.board_size)
 
     winner, probs = net.predict(state)
     winner = winner.item(0)
@@ -33,6 +43,7 @@ def getPredictionFromNN(net, state):
 
 net_api = NetworkAPI()
 net_api.load_data()
+
 net_api.create_net()
 
 net_api.train_model(net_api.ALL_STATES, [net_api.WINNER, net_api.MOVES])
@@ -41,10 +52,13 @@ print(fitted)
 
 net_api.create_net()
 
+float_formatter = "{:.6f}".format
+np.set_printoptions(formatter={'float_kind': float_formatter})
+
 #prediction mit frisch initialisiertem Netz, aka ohne Training
 for state in all_states:
     winner_nt, probs_nt = getPredictionFromNN(net_api.net, state)
-    state_reshape = np.reshape(state, (5,5,5))
+    state_reshape = np.reshape(state, (9,5,5))
     probs_reshape = probs_nt[:-1]
     probs_reshape = np.reshape(probs_reshape, (5,5))
     print('state + history + color matrix, in order from t to t-3:\n{}'.format(state_reshape))
@@ -54,7 +68,7 @@ for state in all_states:
 net_api.net.load_weights("/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/components/nn/training_1/0001-cp.ckpt")
 for state in all_states:
     winner_nt, probs_nt = getPredictionFromNN(net_api.net, state)
-    state_reshape = np.reshape(state, (5,5,5))
+    state_reshape = np.reshape(state, (9,5,5))
     probs_reshape = probs_nt[:-1]
     probs_reshape = np.reshape(probs_reshape, (5,5))
     print('state + history + color matrix, in order from t to t-3:\n{}'.format(state_reshape))
@@ -64,7 +78,7 @@ for state in all_states:
 net_api.net.load_weights("/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/components/nn/training_1/0100-cp.ckpt")
 for state in all_states:
     winner_nt, probs_nt = getPredictionFromNN(net_api.net, state)
-    state_reshape = np.reshape(state, (5,5,5))
+    state_reshape = np.reshape(state, (9,5,5))
     probs_reshape = probs_nt[:-1]
     probs_reshape = np.reshape(probs_reshape, (5,5))
     print('state + history + color matrix, in order from t to t-3:\n{}'.format(state_reshape))
@@ -74,22 +88,22 @@ for state in all_states:
 net_api.net.load_weights("/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/components/nn/training_1/0300-cp.ckpt")
 for state in all_states:
     winner_nt, probs_nt = getPredictionFromNN(net_api.net, state)
-    state_reshape = np.reshape(state, (5,5,5))
+    state_reshape = np.reshape(state, (9,5,5))
     probs_reshape = probs_nt[:-1]
     probs_reshape = np.reshape(probs_reshape, (5,5))
     print('state + history + color matrix, in order from t to t-3:\n{}'.format(state_reshape))
     print('probs after training for 300 epochs:\n{}, pass prob: {}, winner: {}'.format(probs_reshape, probs_nt[-1:], winner_nt))
 
-"""
+
 net_api.net.load_weights("/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/components/nn/training_1/0700-cp.ckpt")
 for state in all_states:
     winner_nt, probs_nt = getPredictionFromNN(net_api.net, state)
-    state_reshape = np.reshape(state, (5,5,5))
+    state_reshape = np.reshape(state, (9,5,5))
     probs_reshape = probs_nt[:-1]
     probs_reshape = np.reshape(probs_reshape, (5,5))
     print('state + history + color matrix, in order from t to t-3:\n{}'.format(state_reshape))
     print('probs after training for 700 epochs:\n{}, pass prob: {}, winner: {}'.format(probs_reshape, probs_nt[-1:], winner_nt))
-"""
+
 #%%
 """
 net_api.model_load("models/model20210118-155808")

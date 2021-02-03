@@ -34,8 +34,8 @@ class NetworkAPI:
         win = []
 
         dirname = os.path.dirname(__file__)
-        #with open(os.path.join(dirname, '../../replaybuffer_perfect_game_last3turns.json')) as json_file:
-        with open(os.path.join(dirname, '../../replaybuffer.json')) as json_file:
+        with open(os.path.join(dirname, '../../replaybuffer_perfect_game_last3turns.json')) as json_file:
+        #with open(os.path.join(dirname, '../../replaybuffer.json')) as json_file:
             data = json.load(json_file)
             for line in range(len(data)):
                 states.append(data[line]['state'])
@@ -43,12 +43,23 @@ class NetworkAPI:
                 win.append(data[line]['winner'])
 
         ALL_STATES = np.stack(states, axis=0)
+
+        #if using nn_test -> need to transform old replaybuffer since it uses old history
+        if str(ALL_STATES.shape) == '(25, 5, 5, 5)':
+            print(type(ALL_STATES))
+            buffer = []
+            for state in ALL_STATES:
+                state = split_input(state)
+                buffer.append(state)
+            buffer = np.array(buffer)
+            ALL_STATES = buffer
+
         WINNER = np.stack(win, axis=0)
         MOVES = np.array(move)
 
         # wieder auf 5 ändern an der letzten stelle wenn parents in der predcition enthalten
-        ALL_STATES = ALL_STATES.reshape(ALL_STATES.shape[0], constants.board_size, constants.board_size,
-                                        constants.input_stack_size)
+        ALL_STATES = ALL_STATES.reshape(ALL_STATES.shape[0], constants.input_stack_size,
+                                        constants.board_size, constants.board_size)
         # WINNER = WINNER.reshape(WINNER.shape[0], 5, 5, 1)
         # MOVES = MOVES.reshape(MOVES.shape[0], 5, 5, 1)
 
@@ -63,7 +74,7 @@ class NetworkAPI:
         self.ALL_STATES = ALL_STATES
         self.input_shape = input_shape
 
-    def create_net(self, input_shape_param = None):
+    def create_net(self, input_shape_param=None):
         # lr = 0.001 zu groß für sgd -> loss für probs geht auf ~360
         # Adam vs SGD -> erst mal mit SGD für "einfaches" debugging und für abschließende optimierung dann mit Adam
         # learning rate für sgd liegt zwischen 0.01 und 0.1 bei perfektem game buffer
@@ -153,7 +164,7 @@ class NetworkAPI:
         inputList = np.array(inputList)
         inputList = np.float64(inputList) #ein input stack (als array)
         inputList = split_input(inputList)
-        inputList = inputList.reshape(1, constants.board_size, constants.board_size, constants.input_stack_size)
+        inputList = inputList.reshape(1, constants.input_stack_size, constants.board_size, constants.board_size)
 
         winner, probs = self.net.predict(inputList)
         winner = winner.item(0)
