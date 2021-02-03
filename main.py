@@ -127,7 +127,9 @@ def main(args):
     dummy_state = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
     winner_test, probs_test = untrained_net.getPredictionFromNN(dummy_state, [], BLACK)
     constants.currentBestNetFileName = untrained_net.save_model("untrained")
-    #constants.currentBestNetFileName = "TOFILL"
+
+    # zum laden eines bisher existierenden netzes anstelle von beginn bei 0
+    #constants.currentBestNetFileName = "models/model20210202-221531"
 
 
     for i in range(0, constants.pipeline_runs):

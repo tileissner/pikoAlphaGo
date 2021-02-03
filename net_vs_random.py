@@ -12,7 +12,7 @@ from components.player.player import Player
 from utils import constants
 
 WHITE, NONE, BLACK = range(-1, 2)
-currentNetFileName = "/home/marcel/Dokumente/model20210202-202714"
+currentNetFileName = "/home/marcel/PycharmProjects/pikoAlphaGo/components/nn/models/model20210202-221531"
 nn_api = NetworkAPI()
 nn_api.model_load(currentNetFileName)
 
@@ -79,8 +79,8 @@ def createPlot(netWins, randomPlayerwins, draws):
 def startGameEvaluation(pos, color, netPlayer, randomPlayer):
     initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
     mcts = MonteCarloTreeSearch(nn_api, 0.0, initial_board_state)
-
-    while not pos.is_game_over():
+    move_counter = 0
+    while not pos.is_game_over() and move_counter < constants.board_size ** 2 * 2:
         if color == WHITE:
             if netPlayer.color == WHITE:
                 root = mcts.search_mcts_function()
@@ -116,6 +116,7 @@ def startGameEvaluation(pos, color, netPlayer, randomPlayer):
                 print("Random player played: ", coord)
                 color = WHITE
         mcts.go_game_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+        move_counter = move_counter + 1
 
     # update winner when game is finished for all experiences in this single game
 

@@ -164,17 +164,13 @@ class MCTS:
                                                                    next_go_game_state.pos.to_play)
                 # valid_moves = next_go_game_state.get_legal_actions()
                 valid_moves = next_go_game_state.pos.all_legal_moves()
-                #print("neue valid moves")
-                #print(valid_moves)
-                #print("to play {}".format(next_go_game_state.pos.to_play))
-                #print(next_go_game_state.pos.board)
                 action_probs = action_probs * valid_moves  # mask invalid moves
                 action_probs /= np.sum(action_probs)
                 node.expand(next_go_game_state, parent.go_game_state.pos.to_play * (-1), action_probs)
                 #node.expand(next_go_game_state, next_go_game_state.pos.to_play, action_probs)
 
             #TODO: *(-1) korrekt?
-            self.backpropagate(search_path, -winner, parent.to_play * -1)
+            self.backpropagate(search_path, -winner, parent.go_game_state.pos.to_play * -1)
 
         return root
 
