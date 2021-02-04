@@ -188,14 +188,17 @@ def startGameMCTS(pos, color):
     # return coords.from_flat(resultChild.move_from_parent), root.getProbDistributionForChildren(),
 
     move_counter = 0
-
+    new_root = None
     while not pos.is_game_over() and move_counter < constants.board_size ** 2 * 2:
 
         # print(pos.board)
         # resultChild = mcts.search_function(constants.mcts_simulations)
         # new_root = mcts.search_function(constants.mcts_simulations)
         # new_root = mcts._new_search_function(constants.mcts_simulations)
-        root = mcts.search_mcts_function()
+
+
+        root = mcts.search_mcts_function(None)
+        #root = mcts.search_mcts_function(new_root)
 
         action_probs = [0 for _ in range(constants.board_size * constants.board_size + 1)]
         for k, v in root.children.items():
@@ -204,6 +207,8 @@ def startGameMCTS(pos, color):
         action_probs = action_probs / np.sum(action_probs)
 
         action = root.select_action(temperature=constants.temperature)
+        new_root = root.children[action]
+
         pos = pos.play_move(coords.from_flat(action))
         mcts.go_game_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
         print("move counter {}".format(move_counter))
@@ -308,7 +313,7 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
             # currentPlayer.mcts.root = discard_tree(currentPlayer.mcts.root)
 
             # neue mcts
-            root = currentPlayer.mcts.search_mcts_function()
+            root = currentPlayer.mcts.search_mcts_function(None)
 
             action = root.select_action(temperature=constants.temperature)
             pos = pos.play_move(coords.from_flat(action))
@@ -336,7 +341,7 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
             # challengerPlayer.mcts.root = discard_tree(challengerPlayer.mcts.root)
 
             # neue mcts
-            root = challengerPlayer.mcts.search_mcts_function()
+            root = challengerPlayer.mcts.search_mcts_function(None)
 
             action = root.select_action(temperature=constants.temperature)
             pos = pos.play_move(coords.from_flat(action))
