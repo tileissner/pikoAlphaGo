@@ -153,6 +153,7 @@ class MCTS:
             # next_state = self.go_game_state.get_canonical_board(next_state, player=-1)
 
             # The value of the new state from the perspective of the other player
+            #next_go_game_state.pos.board = self.get_canonical_board(next_go_game_state.pos.board)
             winner = next_go_game_state.get_reward_for_player()
 
             if winner is None:
@@ -170,9 +171,12 @@ class MCTS:
                 # node.expand(next_go_game_state, next_go_game_state.pos.to_play, action_probs)
 
             # TODO: *(-1) korrekt?
-            self.backpropagate(search_path, -winner, parent.go_game_state.pos.to_play * -1)
+            self.backpropagate(search_path, winner, parent.go_game_state.pos.to_play * -1)
 
         return root
+
+    def get_canonical_board(self, board):
+        return board * (-1)
 
     def backpropagate(self, search_path, value, to_play):
         """

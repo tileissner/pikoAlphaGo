@@ -1,11 +1,11 @@
 board_size: 5
 location_replay_buffer: ''
-thread_count: 1
-games_per_thread: 1
-mcts_simulations: 49
+thread_count: 3
+games_per_thread: 3
+mcts_simulations: 151
 amount_evaluator_iterations: 7
 state_history_length: 3
-pipeline_runs: 1
+pipeline_runs: 2
 improvement_percentage_threshold: 0.51
 custom_batch_size: 256
 epochs: 700

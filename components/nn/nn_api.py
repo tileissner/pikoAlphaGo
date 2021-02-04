@@ -34,8 +34,8 @@ class NetworkAPI:
         win = []
 
         dirname = os.path.dirname(__file__)
-        with open(os.path.join(dirname, '../../replaybuffer_perfect_game_last3turns.json')) as json_file:
-        #with open(os.path.join(dirname, '../../replaybuffer.json')) as json_file:
+        #with open(os.path.join(dirname, '../../replaybuffer_perfect_game_last3turns.json')) as json_file:
+        with open(os.path.join(dirname, '../../replaybuffer.json')) as json_file:
             data = json.load(json_file)
             for line in range(len(data)):
                 states.append(data[line]['state'])
