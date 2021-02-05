@@ -5,6 +5,7 @@ board_size = None
 location_replay_buffer = None
 thread_count = None
 games_per_thread = None
+games_per_eval_thread = None
 
 Q = None
 mcts_simulations = None
@@ -26,3 +27,6 @@ input_states = None
 currentBestNetFileName = "models/modeluntrained"
 #currentBestNetFileName = "models/model"
 challengerNetFileName = ""
+
+challenger_wins = 0
+current_player_wins = 0

@@ -33,7 +33,8 @@ class selfplay:
                 self.winsblack += 1
             else:
                 self.winswhite += 1
-            print("{}. game von prozess fertig gespielt".format(i))
+            color = color * (-1)
+            print("{}. game von prozess fertig gespielt".format(i+1))
         #
         # with open(file_name, 'a', 1) as f:
         #     index = 0
@@ -177,10 +178,30 @@ def main(args):
         # reset competitive for self play exploration
         constants.competitive = 0
 
+        threads = []
+        for i in range(0, constants.thread_count):
+            # target = name for method that must be executed in thread
+            threads.append(
+                threading.Thread(target=goApi.evaluateNet, args=(constants.board_size, -1, constants.currentBestNetFileName, constants.challengerNetFileName)))
+            threads[-1].start()
+        for t in threads:
+            t.join()
 
-        goApi.evaluateNet(constants.board_size, -1, constants.currentBestNetFileName, constants.challengerNetFileName)
+        print("WHITE hat " + str(constants.current_player_wins) + " wins")
+        # print(currentPlayer.color, " hat ", currentPlayerWins, " wins")
+        print("BLACK hat " + str(constants.challenger_wins) + " wins")
+
+        # wenn 55% -> neues model
+        if constants.challenger_wins / constants.amount_evaluator_iterations > constants.improvement_percentage_threshold:
+            print("neues netz ist besser!")
+            # überschreibe das current best network mit dem neuen challenger network
+            constants.currentBestNetFileName = constants.challengerNetFileName
+        else:
+            print("neues netz bringt keine verbesserung")
 
         print("Neues netz: " + constants.currentBestNetFileName)
+        constants.challenger_wins = 0
+        constants.current_player_wins = 0
         removeLastCharacter('replaybuffer.json')
 
         # wenn neues netz besser -> kopiere weights des neuen netzes

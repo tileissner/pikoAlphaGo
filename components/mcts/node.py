@@ -60,8 +60,6 @@ class Node:
         # TODO: optimierung
         if temperature == 0:
             action = actions[np.argmax(visit_counts)]
-        elif constants.temperature == float("inf"):
-            action = np.random.choice(actions)
         else:
             # See paper appendix Data Generation
             visit_count_distribution = visit_counts ** (1 / temperature)
@@ -170,7 +168,7 @@ class MCTS:
                 #node.expand(next_go_game_state, next_go_game_state.pos.to_play, action_probs)
 
             #TODO: *(-1) korrekt?
-            self.backpropagate(search_path, -winner, parent.go_game_state.pos.to_play * -1)
+            self.backpropagate(search_path, winner, parent.go_game_state.pos.to_play * -1)
 
         return root
 

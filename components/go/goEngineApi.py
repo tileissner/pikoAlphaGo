@@ -1,4 +1,5 @@
 import random
+import threading
 
 import numpy as np
 
@@ -15,35 +16,30 @@ WHITE, NONE, BLACK = range(-1, 2)
 
 
 def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
-    pos = createGame(board_size, color)
+
+
     currentPlayerWins = 0
     challengerPlayerWins = 0
 
     # NEVER CHANGE COLOR
-    print("white: {}, black: {}".format(currentNetFileName, challengerNetFileName))
     currentPlayer = Player(WHITE, currentNetFileName)
     challengerPlayer = Player(BLACK, challengerNetFileName)
 
-    for _ in range(0, constants.amount_evaluator_iterations):
+    for _ in range(0, constants.games_per_eval_thread):
+        pos = createGame(board_size, color)
+
         # Zufällige Auswahl wer beginnt
 
         winner = startGameEvaluation(pos, currentPlayer, challengerPlayer)
         if winner == currentPlayer:
-            currentPlayerWins += 1
+            constants.current_player_wins += 1
         else:
-            challengerPlayerWins += 1
+            constants.challenger_wins += 1
+        color = color * (-1)
 
-    print(str(currentPlayer.color) + " hat " + str(currentPlayerWins) + " wins")
-    # print(currentPlayer.color, " hat ", currentPlayerWins, " wins")
-    print(str(challengerPlayer.color) + " hat " + str(challengerPlayerWins) + " wins")
+    return currentPlayerWins, challengerPlayerWins
 
-    # wenn 55% -> neues model
-    if challengerPlayerWins / constants.amount_evaluator_iterations > 0.55:
-        print("neues netz ist besser!")
-        # überschreibe das current best network mit dem neuen challenger network
-        constants.currentBestNetFileName = challengerPlayer.net_api.pathToModel
-    else:
-        print("neues netz bringt keine verbesserung")
+
 
 
 def selfPlay(board_size, color):
@@ -57,7 +53,7 @@ def createGame(N, beginner):
     EMPTY_BOARD = np.zeros([N, N], dtype=np.int8)
     pos = go.Position(EMPTY_BOARD, n=0, komi=0.0, caps=(0, 0),
                       lib_tracker=None, ko=None, recent=tuple(),
-                      board_deltas=None, to_play=BLACK)
+                      board_deltas=None, to_play=beginner)
     return pos
 
 
@@ -178,7 +174,7 @@ def startGameMCTS(pos, color):
     net_api = NetworkAPI()
     net_api.model_load(constants.currentBestNetFileName)
 
-    initial_board_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+    initial_board_state = GoGamestate(pos.board, constants.board_size, pos)
 
     # root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state, move_from_parent=None,
     #                                               parent=None)
@@ -188,6 +184,7 @@ def startGameMCTS(pos, color):
     # return coords.from_flat(resultChild.move_from_parent), root.getProbDistributionForChildren(),
 
     move_counter = 0
+    print("spiel startet, beginner: {}".format(pos.to_play))
 
     while not pos.is_game_over() and move_counter < constants.board_size ** 2 * 2:
 
@@ -205,7 +202,7 @@ def startGameMCTS(pos, color):
 
         action = root.select_action(temperature=constants.temperature)
         pos = pos.play_move(coords.from_flat(action))
-        mcts.go_game_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+        mcts.go_game_state = GoGamestate(pos.board, constants.board_size, pos)
         print("move counter {}".format(move_counter))
         print("chosen action {} by {}".format(action, pos.to_play * (-1)))
         # print(pos)
@@ -255,14 +252,8 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
     # currentPlayer = WHITE = -1
     # challengerPlayer = BLACK = 1
 
-    color = None
-    if randomStartPlayer() == currentPlayer.color:
-        color = currentPlayer.color
 
-    else:
-        color = challengerPlayer.color
-
-    initial_board_state = GoGamestate(pos.board, constants.board_size, color, pos)
+    initial_board_state = GoGamestate(pos.board, constants.board_size, pos)
 
     #
     # current_player_new_root = TwoPlayersGameMonteCarloTreeSearchNode(state=initial_board_state, move_from_parent=None,
@@ -291,7 +282,7 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
 
         # print("Random Number: " + str(randomNum))
 
-        if (color == WHITE):
+        if pos.to_play == WHITE:
             # current_player_new_root = currentPlayer.mcts._new_search_function(constants.mcts_simulations)
             # action = current_player_new_root.move_from_parent
             # #TODO Root des anderen spieler setzen
@@ -310,15 +301,14 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
             # neue mcts
             root = currentPlayer.mcts.search_mcts_function()
 
-            action = root.select_action(temperature=constants.temperature)
+            action = root.select_action(temperature=0)
             pos = pos.play_move(coords.from_flat(action))
-            synchronized_go_game_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+            synchronized_go_game_state = GoGamestate(pos.board, constants.board_size, pos)
             currentPlayer.mcts.go_game_state = synchronized_go_game_state
             challengerPlayer.mcts.go_game_state = synchronized_go_game_state
 
             print("white played ", action)
             print(pos.board)
-            color = BLACK
 
         # elif (color == BLACK):
         else:
@@ -338,15 +328,14 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
             # neue mcts
             root = challengerPlayer.mcts.search_mcts_function()
 
-            action = root.select_action(temperature=constants.temperature)
+            action = root.select_action(temperature=0.94)
             pos = pos.play_move(coords.from_flat(action))
-            synchronized_go_game_state = GoGamestate(pos.board, constants.board_size, pos.to_play, pos)
+            synchronized_go_game_state = GoGamestate(pos.board, constants.board_size, pos)
             currentPlayer.mcts.go_game_state = synchronized_go_game_state
             challengerPlayer.mcts.go_game_state = synchronized_go_game_state
 
             print("black played ", action)
             print(pos.board)
-            color = WHITE
 
         move_counter += 1
 

@@ -26,12 +26,11 @@ class GoGamestate(TwoPlayersAbstractGameState):
     # Position.board object from go engine
     pos = []
 
-    def __init__(self, state, board_size, next_to_move, pos):
+    def __init__(self, state, board_size, pos):
         if len(state.shape) != 2 or state.shape[0] != state.shape[1]:
             raise ValueError("Only 2D square boards allowed")
         self.board = state
         self.board_size = board_size
-        self.next_to_move = next_to_move
         self.pos = pos  # position object by go engine
 
     @property
@@ -78,7 +77,7 @@ class GoGamestate(TwoPlayersAbstractGameState):
             )
         pos = self.pos.play_move(move)
 
-        return GoGamestate(pos.board, self.board_size, pos.to_play, pos)
+        return GoGamestate(pos.board, self.board_size, pos)
 
     def get_legal_actions(self):
         # indices = np.where(self.board == 0)
