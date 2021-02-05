@@ -1,7 +1,8 @@
 board_size: 5
 location_replay_buffer: ''
-thread_count: 3
-games_per_thread: 3
+thread_count: 6
+games_per_thread: 6
+games_per_eval_thread: 6
 mcts_simulations: 151
 amount_evaluator_iterations: 7
 state_history_length: 3
