@@ -180,7 +180,7 @@ def startGameMCTS(pos, color):
     #                                               parent=None)
 
     # mcts = MonteCarloTreeSearch(root, net_api, (1/math.sqrt(2)))
-    mcts = MonteCarloTreeSearch(net_api, 4.0, initial_board_state)
+    mcts = MonteCarloTreeSearch(net_api, constants.c_puct, initial_board_state)
     # return coords.from_flat(resultChild.move_from_parent), root.getProbDistributionForChildren(),
 
     move_counter = 0
@@ -249,6 +249,7 @@ def startGameMCTS(pos, color):
 
 
 def startGameEvaluation(pos, currentPlayer, challengerPlayer):
+    c_puct = constants.c_puct + random.uniform(-0.3, 0.3)
     # currentPlayer = WHITE = -1
     # challengerPlayer = BLACK = 1
 
@@ -264,8 +265,8 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
 
     # currentPlayer.mcts = MonteCarloTreeSearch(current_player_new_root, currentPlayer.net_api, 0.)
     # challengerPlayer.mcts = MonteCarloTreeSearch(challengerPlayer_player_new_root, challengerPlayer.net_api, 0.)
-    currentPlayer.mcts = MonteCarloTreeSearch(currentPlayer.net_api, 0.0, initial_board_state)
-    challengerPlayer.mcts = MonteCarloTreeSearch(challengerPlayer.net_api, 0.0, initial_board_state)
+    currentPlayer.mcts = MonteCarloTreeSearch(currentPlayer.net_api, c_puct, initial_board_state)
+    challengerPlayer.mcts = MonteCarloTreeSearch(challengerPlayer.net_api, c_puct, initial_board_state)
 
     # TODO needed?
     # challengerPlayer_player_new_root.expand()
@@ -301,7 +302,7 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
             # neue mcts
             root = currentPlayer.mcts.search_mcts_function()
 
-            action = root.select_action(temperature=0)
+            action = root.select_action(temperature=0.01)
             pos = pos.play_move(coords.from_flat(action))
             synchronized_go_game_state = GoGamestate(pos.board, constants.board_size, pos)
             currentPlayer.mcts.go_game_state = synchronized_go_game_state
@@ -328,7 +329,7 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer):
             # neue mcts
             root = challengerPlayer.mcts.search_mcts_function()
 
-            action = root.select_action(temperature=0.94)
+            action = root.select_action(temperature=0.01)
             pos = pos.play_move(coords.from_flat(action))
             synchronized_go_game_state = GoGamestate(pos.board, constants.board_size, pos)
             currentPlayer.mcts.go_game_state = synchronized_go_game_state

@@ -16,6 +16,7 @@ pipeline_runs = None
 improvement_percentage_threshold = None
 input_stack_size = None
 custom_batch_size = None
+c_puct = None
 
 epochs = None
 

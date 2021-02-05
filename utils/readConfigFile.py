@@ -21,6 +21,7 @@ def readConfigFile(location):
             constants.input_states = param_list['input_states']
             constants.games_per_thread = param_list['games_per_thread']
             constants.games_per_eval_thread = param_list['games_per_eval_thread']
+            constants.c_puct = param_list['c_puct']
 
             constants.input_stack_size = constants.input_states * 2 + 1
 
