@@ -6,6 +6,8 @@ import numpy as np
 import components.go.coords as coords
 import components.go.go as go
 from components.go.trainingSet import TrainingSet
+
+
 from components.mcts.goMCTS import GoGamestate
 from components.mcts.search import MonteCarloTreeSearch
 from components.nn.nn_api import NetworkAPI

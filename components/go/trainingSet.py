@@ -1,6 +1,6 @@
 import json
 import numpy as np
-from split_input import split_input
+from components.nn.split_input import split_input
 
 
 class TrainingSet:

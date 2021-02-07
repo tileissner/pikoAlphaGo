@@ -1,4 +1,4 @@
-from nn_api import NetworkAPI
+from components.nn.nn_api import NetworkAPI
 
 
 class Player:

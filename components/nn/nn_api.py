@@ -8,7 +8,7 @@ from tensorflow.keras import optimizers
 
 import components.nn.nn_model as nn_model
 from utils import constants
-from split_input import split_input
+from components.nn.split_input import split_input
 
 class NetworkAPI:
     ALL_STATES = None
