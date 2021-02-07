@@ -15,7 +15,7 @@ from utils import constants
 WHITE, NONE, BLACK = range(-1, 2)
 
 
-def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
+def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName, thread_counter):
 
 
     currentPlayerWins = 0
@@ -30,7 +30,7 @@ def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName):
 
         # Zufällige Auswahl wer beginnt
 
-        winner = startGameEvaluation(pos, currentPlayer, challengerPlayer)
+        winner = startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter)
         if winner == currentPlayer:
             constants.current_player_wins += 1
         else:
@@ -248,8 +248,9 @@ def startGameMCTS(pos, color):
     return trainingSet
 
 
-def startGameEvaluation(pos, currentPlayer, challengerPlayer):
-    c_puct = constants.c_puct + random.uniform(-0.3, 0.3)
+def startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter):
+    c_puct = constants.c_puct + random.uniform(-1.0, 1.0)
+    print("thread {} hat c_puct {}".format(thread_counter, c_puct))
     # currentPlayer = WHITE = -1
     # challengerPlayer = BLACK = 1
 

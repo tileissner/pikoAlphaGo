@@ -2,15 +2,16 @@ import os
 import sys
 import threading
 import time
-from multiprocessing.process import current_process
+
+import numpy as np
 
 import components.go.goEngineApi as goApi
 import components.nn.nn_api as nn_api
 import utils.constants as constants
 import utils.readConfigFile as configFile
-import numpy as np
 
 WHITE, NONE, BLACK = range(-1, 2)
+
 
 class selfplay:
     trainingSetList = []
@@ -34,7 +35,7 @@ class selfplay:
             else:
                 self.winswhite += 1
             color = color * (-1)
-            print("{}. game von prozess fertig gespielt".format(i+1))
+            print("{}. game von prozess fertig gespielt".format(i + 1))
         #
         # with open(file_name, 'a', 1) as f:
         #     index = 0
@@ -58,7 +59,7 @@ class selfplay:
             threads[-1].start()
         for t in threads:
             t.join()
-        #hier wartet er auf alle threads bis sie feritg sind
+        # hier wartet er auf alle threads bis sie feritg sind
 
         # # check what the heck the file had
         # uniq_lines = set()
@@ -73,12 +74,12 @@ class selfplay:
         with open('replaybuffer.json', 'a', 1) as f:
             if iteration == 0:
                 f.write("[")
-            #1 traininget = 1 entire game
+            # 1 traininget = 1 entire game
             for trainingSet in self.trainingSetList:
                 rowIndex = 0
-                #1 t = eine zeile (=1 Zustand) des Spiels
+                # 1 t = eine zeile (=1 Zustand) des Spiels
                 for t in trainingSet:
-                    if listIndex == (len(self.trainingSetList) - 1) and rowIndex == (len(trainingSet) -1):
+                    if listIndex == (len(self.trainingSetList) - 1) and rowIndex == (len(trainingSet) - 1):
                         f.write(writeHistoryStates(trainingSet, rowIndex, True))
                     else:
                         f.write(writeHistoryStates(trainingSet, rowIndex, False))
@@ -93,6 +94,7 @@ class selfplay:
                     rowIndex += 1
                 listIndex += 1
             f.write("]")
+
 
 # main function of all sub-programs
 def main(args):
@@ -115,14 +117,14 @@ def main(args):
 
     WHITE, NONE, BLACK = range(-1, 2)
 
-    #untrainiertes netz laden
+    # untrainiertes netz laden
     untrained_net = nn_api.NetworkAPI()
-    #hack, damit wir subclassed model speichern können
-    #man muss subclassed model nämlich erst auf irgendeine art & weise verwenden
-    #die input_shape muss hier auch manuell gesetzt werden, da wir die daten noch nicht laden, da noch kein replaybuffer exisitiert
-    #diese input_shape wird allerdings erst übernommen wenn das model genutzt wurde
-    #wir lassen also predicten mit dummy variablen damit die input_shape ans netz übergeben wird
-    #sobald diese shape übergeben wurde kann das untrainierte netz gespeichert werden
+    # hack, damit wir subclassed model speichern können
+    # man muss subclassed model nämlich erst auf irgendeine art & weise verwenden
+    # die input_shape muss hier auch manuell gesetzt werden, da wir die daten noch nicht laden, da noch kein replaybuffer exisitiert
+    # diese input_shape wird allerdings erst übernommen wenn das model genutzt wurde
+    # wir lassen also predicten mit dummy variablen damit die input_shape ans netz übergeben wird
+    # sobald diese shape übergeben wurde kann das untrainierte netz gespeichert werden
     initial_input_shape = (1, constants.input_stack_size, constants.board_size, constants.board_size)
     untrained_net.create_net(initial_input_shape)
     dummy_state = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
@@ -130,8 +132,7 @@ def main(args):
     constants.currentBestNetFileName = untrained_net.save_model("untrained")
 
     # zum laden eines bisher existierenden netzes anstelle von beginn bei 0
-    #constants.currentBestNetFileName = "models/model20210202-221531"
-
+    # constants.currentBestNetFileName = "models/model20210205-154629"
 
     for i in range(0, constants.pipeline_runs):
 
@@ -144,7 +145,7 @@ def main(args):
         sp = selfplay()
         # starts the self play games with the current best network
         sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
-        #wait for finish of threads
+        # wait for finish of threads
         sp.writeTrainingSetsToJsonBuffer(i)
 
         # now evaluation comes into play -> play as good as possible
@@ -164,7 +165,7 @@ def main(args):
         challengerNetApi.load_data()  # werte initialisiert
         challengerNetApi.net = currentBestNetApi.net
 
-        #challengerNetApi.create_net()
+        # challengerNetApi.create_net()
         print("Trainiere neues Netzwerk")
         challengerNetApi.train_model(challengerNetApi.ALL_STATES, [challengerNetApi.WINNER, challengerNetApi.MOVES])
 
@@ -179,11 +180,15 @@ def main(args):
         constants.competitive = 0
 
         threads = []
+        thread_counter = 0
         for i in range(0, constants.thread_count):
             # target = name for method that must be executed in thread
             threads.append(
-                threading.Thread(target=goApi.evaluateNet, args=(constants.board_size, -1, constants.currentBestNetFileName, constants.challengerNetFileName)))
+                threading.Thread(target=goApi.evaluateNet, args=(
+                constants.board_size, -1, constants.currentBestNetFileName, constants.challengerNetFileName,
+                thread_counter)))
             threads[-1].start()
+            thread_counter += 1
         for t in threads:
             t.join()
 
@@ -218,16 +223,16 @@ def writeHistoryStates(trainingSet, index, lastElement):
     previousStates = []
     # dient auch als leeres board wenn wir auffüllen müssen
     # falls nciht genug vorherige zustände vorhanden sind
-    color_w = np.zeros((5,5), dtype=int)
-    color_b = np.ones((5,5), dtype=int)
+    color_w = np.zeros((5, 5), dtype=int)
+    color_b = np.ones((5, 5), dtype=int)
     counter = 0
 
     startValue = index - constants.state_history_length
     if startValue < 0:
         startValue = 0
 
-    #fall 0: geht er dann überhaupt rein?
-    #for i in range(startValue, index):
+    # fall 0: geht er dann überhaupt rein?
+    # for i in range(startValue, index):
     for i in range(startValue, index):
         previousStates.append(trainingSet[i].state)
         counter = counter + 1
@@ -237,7 +242,7 @@ def writeHistoryStates(trainingSet, index, lastElement):
     toBeFilled = constants.state_history_length - counter
     previousStatesFilled = []
     for i in range(0, toBeFilled):
-        previousStatesFilled.append(np.zeros((5,5), dtype=int))
+        previousStatesFilled.append(np.zeros((5, 5), dtype=int))
 
     if trainingSet[index].color == BLACK:
         previousStatesFilled.append(color_b)
@@ -257,16 +262,11 @@ def removeLastCharacter(filename):
     content = content[:-1]
     content = content + ","
 
-
-
     f = open(filename, "w")
     f.write(content)
     f.close()
 
 
-
 if __name__ == "__main__":
     # execute only if run as a script
     main(sys.argv)
-
-
