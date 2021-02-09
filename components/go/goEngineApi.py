@@ -187,6 +187,7 @@ def startGameMCTS(pos, color):
 
     move_counter = 0
     print("spiel startet, beginner: {}".format(pos.to_play))
+    new_root = None
 
     while not pos.is_game_over() and move_counter < constants.board_size ** 2 * 2:
 
@@ -194,7 +195,7 @@ def startGameMCTS(pos, color):
         # resultChild = mcts.search_function(constants.mcts_simulations)
         # new_root = mcts.search_function(constants.mcts_simulations)
         # new_root = mcts._new_search_function(constants.mcts_simulations)
-        root = mcts.search_mcts_function()
+        root = mcts.search_mcts_function(new_root)
 
         action_probs = [0 for _ in range(constants.board_size * constants.board_size + 1)]
         for k, v in root.children.items():
@@ -209,29 +210,7 @@ def startGameMCTS(pos, color):
         print("chosen action {} by {}".format(action, pos.to_play * (-1)))
         # print(pos)
         # print(pos.board)
-        # state, current_player = self.game.get_next_state(state, current_player, action)
-        # reward = self.game.get_reward_for_player(state, current_player)
-
-        # action = coords.from_flat(new_root.move_from_parent)
-        # probs = new_root.parent.getProbDistributionForChildren()
-
-        # new_root = discard_tree(new_root)
-
-        # root = new_root
-        # mcts.root = new_root
-        # action, probs = chooseActionAccordingToMCTS(pos, net_api, root)
-
-        # GetMoveProbablitiesFrom MCTS
-
-        # # print(str(color) + " (" + getPlayerName(color) + ") am Zug")v
-        # currentColor = color
-        # # print("Random Number: " + str(randomNum))
-        # if (color == WHITE):
-        #     pos = pos.play_move(action, WHITE, False)
-        #     color = BLACK
-        # elif (color == BLACK):
-        #     pos = pos.play_move(action, BLACK, False)
-        #     color = WHITE
+        new_root = root.children[action]
 
         newTrainingSet = TrainingSet(pos.board, action_probs, pos.to_play)
         trainingSet.append(newTrainingSet)
@@ -277,6 +256,9 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter):
 
     move_counter = 0
 
+    challenger_player_new_root = None
+    current_player_new_root = None
+
     while not pos.is_game_over() and move_counter < constants.board_size ** 2 * 2:
 
         # current_player_new_root = mcts_current_player.search_function(constants.mcts_simulations)
@@ -303,13 +285,17 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter):
             # currentPlayer.mcts.root = discard_tree(currentPlayer.mcts.root)
 
             # neue mcts
-            root = currentPlayer.mcts.search_mcts_function()
+            root = currentPlayer.mcts.search_mcts_function(current_player_new_root)
 
             action = root.select_action(temperature=0.01)
             pos = pos.play_move(coords.from_flat(action))
             synchronized_go_game_state = GoGamestate(pos.board, constants.board_size, pos)
             currentPlayer.mcts.go_game_state = synchronized_go_game_state
             challengerPlayer.mcts.go_game_state = synchronized_go_game_state
+
+            current_player_new_root = root.children[action]
+            if challenger_player_new_root is not None:
+                challenger_player_new_root = challenger_player_new_root.children[action]
 
             print("white played ", action)
             print(pos.board)
@@ -330,13 +316,17 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter):
             # challengerPlayer.mcts.root = discard_tree(challengerPlayer.mcts.root)
 
             # neue mcts
-            root = challengerPlayer.mcts.search_mcts_function()
+            root = challengerPlayer.mcts.search_mcts_function(challenger_player_new_root)
 
             action = root.select_action(temperature=0.01)
             pos = pos.play_move(coords.from_flat(action))
             synchronized_go_game_state = GoGamestate(pos.board, constants.board_size, pos)
             currentPlayer.mcts.go_game_state = synchronized_go_game_state
             challengerPlayer.mcts.go_game_state = synchronized_go_game_state
+
+            challenger_player_new_root = root.children[action]
+            if current_player_new_root is not None:
+                current_player_new_root = current_player_new_root.children[action]
 
             print("black played ", action)
             print(pos.board)

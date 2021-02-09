@@ -140,9 +140,12 @@ class MonteCarloTreeSearch(object):
     #
     #     return current_node
 
-    def search_mcts_function(self):
+    def search_mcts_function(self, new_root):
         mcts = MCTS(self.go_game_state, self.net_api, self.c_puct)
-        return mcts.run(self.net_api, self.go_game_state, self.go_game_state.pos.to_play)
+        if new_root is not None:
+            return mcts.run(self.net_api, self.go_game_state, self.go_game_state.pos.to_play, new_root)
+        else:
+            return mcts.run(self.net_api, self.go_game_state, self.go_game_state.pos.to_play, None)
 
     def _new_search_function(self, simulations_number):
         """

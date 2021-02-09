@@ -112,18 +112,20 @@ class MCTS:
         # self.args = args
         self.c_puct = c_puct
 
-    def run(self, net_api, go_game_state, to_play):
+    def run(self, net_api, go_game_state, to_play, new_root):
 
-
-        root = Node(0, to_play, self.c_puct)
+        if new_root is not None:
+            root = new_root
+        else:
+            root = Node(0, to_play, self.c_puct)
         # EXPAND root
         winner, action_probs = net_api.getPredictionFromNN(go_game_state.pos.board,
-                                                                     self.createHistoryStates(go_game_state),
-                                                                     go_game_state.pos.to_play)
+                                                           self.createHistoryStates(go_game_state),
+                                                           go_game_state.pos.to_play)
 
-        #print("self go game state")
-        #print(self.go_game_state.pos.board)
-        #print("self to play {}".format(self.go_game_state.pos.to_play))
+        # print("self go game state")
+        # print(self.go_game_state.pos.board)
+        # print("self to play {}".format(self.go_game_state.pos.to_play))
 
         valid_moves = go_game_state.pos.all_legal_moves()
         action_probs = action_probs * valid_moves  # mask invalid moves
@@ -143,7 +145,7 @@ class MCTS:
             go_game_state = parent
             # Now we're at a leaf node and we would like to expand
             # Players always play from their own perspective
-            #next_go_game_state = self.go_game_state.move(action)  # return GoGamestate
+            # next_go_game_state = self.go_game_state.move(action)  # return GoGamestate
             next_go_game_state = parent.go_game_state.move(action)  # return GoGamestate
             # Get the board from the perspective of the other player
 
@@ -165,9 +167,9 @@ class MCTS:
                 action_probs = action_probs * valid_moves  # mask invalid moves
                 action_probs /= np.sum(action_probs)
                 node.expand(next_go_game_state, parent.go_game_state.pos.to_play * (-1), action_probs)
-                #node.expand(next_go_game_state, next_go_game_state.pos.to_play, action_probs)
+                # node.expand(next_go_game_state, next_go_game_state.pos.to_play, action_probs)
 
-            #TODO: *(-1) korrekt?
+            # TODO: *(-1) korrekt?
             self.backpropagate(search_path, winner, parent.go_game_state.pos.to_play * -1)
 
         return root

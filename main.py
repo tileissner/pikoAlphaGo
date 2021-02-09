@@ -132,7 +132,7 @@ def main(args):
     constants.currentBestNetFileName = untrained_net.save_model("untrained")
 
     # zum laden eines bisher existierenden netzes anstelle von beginn bei 0
-    # constants.currentBestNetFileName = "models/model20210205-154629"
+    #constants.currentBestNetFileName = "models/model20210207-161544"
 
     for i in range(0, constants.pipeline_runs):
 
