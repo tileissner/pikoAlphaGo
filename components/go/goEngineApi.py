@@ -346,10 +346,16 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter):
     # update winner when game is finished for all experiences in this single game
 
     winner = pos.result()
+    # if winner == currentPlayer.color:
+    #     print(str(currentPlayer.color) + " has won")
+    #     return currentPlayer
+    # else:
+    #     print(str(challengerPlayer.color) + " has won")
+    #     return challengerPlayer
     if winner == currentPlayer.color:
         print(str(currentPlayer.color) + " has won")
         return currentPlayer
-    else:
+    elif winner == challengerPlayer.color:
         print(str(challengerPlayer.color) + " has won")
         return challengerPlayer
     # print(pos.result())

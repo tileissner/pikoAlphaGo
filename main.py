@@ -197,7 +197,8 @@ def main(args):
         print("BLACK hat " + str(constants.challenger_wins) + " wins")
 
         # wenn 55% -> neues model
-        if constants.challenger_wins / constants.amount_evaluator_iterations > constants.improvement_percentage_threshold:
+        #if constants.challenger_wins / (constants.thread_count * constants.games_per_eval_thread) > constants.improvement_percentage_threshold:
+        if constants.challenger_wins > constants.current_player_wins:
             print("neues netz ist besser!")
             # überschreibe das current best network mit dem neuen challenger network
             constants.currentBestNetFileName = constants.challengerNetFileName
