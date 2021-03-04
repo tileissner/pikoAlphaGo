@@ -12,7 +12,7 @@ from components.player.player import Player
 from utils import constants
 
 WHITE, NONE, BLACK = range(-1, 2)
-currentNetFileName = "/home/marcel/PycharmProjects/pikoAlphaGo/components/nn/models/model20210202-221531"
+currentNetFileName = "/home/marcel/Downloads/model20210303-170920firstrun"
 nn_api = NetworkAPI()
 nn_api.model_load(currentNetFileName)
 
@@ -21,7 +21,7 @@ constants.configFileLocation = "config.yaml"
 configFile.readConfigFile(constants.configFileLocation)
 
 
-def evaluateNet(board_size, netColor, currentNetFileName):
+def evaluateNet(board_size, netColor, currentNetFileName, startPlayerColor):
     pos = createGame(board_size, BLACK)
 
     netWins = 0
@@ -35,7 +35,10 @@ def evaluateNet(board_size, netColor, currentNetFileName):
 
     for _ in range(0, constants.amount_evaluator_iterations):
         # Zufällige Auswahl wer beginnt
-        winner, score = startGameEvaluation(pos, BLACK, netPlayer, randomPlayer)
+        print("erstelle neues Spiel, Beginner " + str(startPlayerColor))
+        pos = createGame(board_size, startPlayerColor)
+        startPlayerColor = startPlayerColor * (-1)
+        winner, score = startGameEvaluation(pos, netPlayer, randomPlayer)
         if winner is not None:
             print(
                 "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -76,10 +79,11 @@ def createPlot(netWins, randomPlayerwins, draws):
     plt.savefig("winnerdiagram.jpg")
 
 
-def startGameEvaluation(pos, color, netPlayer, randomPlayer):
+def startGameEvaluation(pos, netPlayer, randomPlayer):
     initial_board_state = GoGamestate(pos.board, constants.board_size, pos)
     mcts = MonteCarloTreeSearch(nn_api, 0.0, initial_board_state)
     move_counter = 0
+    color = pos.to_play
     while not pos.is_game_over() and move_counter < constants.board_size ** 2 * 2:
         if color == WHITE:
             if netPlayer.color == WHITE:
@@ -130,4 +134,4 @@ def startGameEvaluation(pos, color, netPlayer, randomPlayer):
 
 
 # net player = black
-evaluateNet(constants.board_size, BLACK, currentNetFileName)
+evaluateNet(constants.board_size, BLACK, currentNetFileName, BLACK)
