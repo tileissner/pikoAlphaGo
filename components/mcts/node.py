@@ -18,10 +18,16 @@ def uct_score(parent, child, c_puct):
 
     children_visit_count = 0
     for key, value in parent.children.items():
-        children_visit_count += value.visit_count
+        children_visit_count += value.visit_count #children visit sum, also quasi summierter visit count des parents
 
     q_value = child.value()
-    u_value = c_puct * child.prior * (math.sqrt(parent.visit_count) / (1 + children_visit_count))
+    #u_value = c_puct * child.prior * (math.sqrt(parent.visit_count) / (1 + children_visit_count))
+
+
+    u_value = c_puct * child.prior * (math.sqrt(parent.visit_count) / (1 + child.visit_count))
+
+    # print("children visit sum {}, parent visit count {}, child visit count {}".format(1+children_visit_count,
+    #                                                                                   parent.visit_count, child.visit_count))
 
     # q_value = value
     # # u_value = c_puct * self.p_distr[c.move_from_parent] * math.sqrt((children_visit_count) / (1 + self.n))
@@ -68,21 +74,24 @@ class Node:
 
         return action
 
-    def select_child(self):
+    def select_child(self, sim_number):
         """
         Select the child with the highest UCB score.
         """
         best_score = -np.inf
         best_action = -1
         best_child = None
-
+        columnList = []
         for action, child in self.children.items():
+
             score = uct_score(self, child, self.c_puct)
+            columnList.append(score)
             if score > best_score:
                 best_score = score
                 best_action = action
                 best_child = child
-
+        #print(str(sim_number) + " -------------------------")
+        #print(columnList)
         return best_action, best_child
 
     def expand(self, go_game_state, to_play, action_probs):
@@ -136,7 +145,7 @@ class MCTS:
 
             # SELECT
             while node.expanded():
-                action, node = node.select_child()
+                action, node = node.select_child(_)
                 search_path.append(node)
 
             parent = search_path[-2]

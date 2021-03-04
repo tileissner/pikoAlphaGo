@@ -23,7 +23,7 @@ class MonteCarloTreeSearch(object):
         self.c_puct = c_puct
         self.go_game_state = go_game_state
 
-    # ehemals best_action
+    # ehemals best_action WIRD NICHT GENUTZT
     def search_function(self, simulations_number):
         """
 
@@ -164,7 +164,7 @@ class MonteCarloTreeSearch(object):
             parent_nodes = self.createHistoryStates(current_node)
 
             # Cheat sheet 1. step
-            # descend to leaf node (using best_child method) until as long as we have children
+            # descend to leaf node (using best_child method) as long as we have children
             # SELECT PHASE
             while len(current_node.children) > 0:
                 action = current_node.new_best_child(self.c_puct)
