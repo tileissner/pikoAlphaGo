@@ -24,7 +24,8 @@ import copy
 import itertools
 import numpy as np
 import os
-import components.go.coords as coords
+#import components.go.coords as coords
+from components.go import coords
 
 N = int(os.environ.get('BOARD_SIZE', 5))
 
