@@ -35,8 +35,10 @@ def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName, th
         winner = startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter)
         if winner == currentPlayer:
             constants.current_player_wins += 1
-        else:
+        elif winner == challengerPlayer:
             constants.challenger_wins += 1
+        else:
+            constants.draws += 1
         color = color * (-1)
 
     return currentPlayerWins, challengerPlayerWins
@@ -358,6 +360,8 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter):
     elif winner == challengerPlayer.color:
         print(str(challengerPlayer.color) + " has won")
         return challengerPlayer
+    else:
+        return None
     # print(pos.result())
     # print(pos.result_string())
     # replayBuffer.addToReplayBuffer(trainingSet)

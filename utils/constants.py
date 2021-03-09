@@ -31,3 +31,4 @@ challengerNetFileName = ""
 
 challenger_wins = 0
 current_player_wins = 0
+draws = 0

@@ -208,6 +208,7 @@ def main(args):
         print("Neues netz: " + constants.currentBestNetFileName)
         constants.challenger_wins = 0
         constants.current_player_wins = 0
+        constants.draws = 0
         removeLastCharacter('replaybuffer.json')
 
         # wenn neues netz besser -> kopiere weights des neuen netzes
