@@ -17,11 +17,12 @@ def readConfigFile(location):
             constants.custom_batch_size = param_list['custom_batch_size']
             constants.epochs = param_list['epochs']
             constants.temperature = param_list['temperature']
-            constants.competitive = param_list['competitive']
             constants.input_states = param_list['input_states']
             constants.games_per_thread = param_list['games_per_thread']
             constants.games_per_eval_thread = param_list['games_per_eval_thread']
             constants.c_puct = param_list['c_puct']
+            constants.path_to_model_to_load = param_list['path_to_model_to_load']
+            constants.use_old_replay_buffer = param_list['use_old_replay_buffer']
 
             constants.input_stack_size = constants.input_states * 2 + 1
 
