@@ -2,7 +2,8 @@ import random
 
 import matplotlib.pyplot as plt
 
-import components.go.coords as coords
+#import components.go.coords as coords
+from components.go import coords
 import utils.readConfigFile as configFile
 from components.go.goEngineApi import createGame
 from components.mcts.goMCTS import GoGamestate

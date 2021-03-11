@@ -3,7 +3,8 @@ import threading
 
 import numpy as np
 
-import components.go.coords as coords
+#import components.go.coords as coords
+from components.go import coords
 import components.go.go as go
 from components.go.trainingSet import TrainingSet
 
