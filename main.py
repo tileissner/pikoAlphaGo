@@ -116,6 +116,7 @@ def main(args):
         currentBestNetApi.model_load(constants.currentBestNetFileName)
 
         print("start self-play with old current best network {}".format(constants.currentBestNetFileName))
+        selfplay_start = time.time()
         sp = selfplay()
         # starts the self play games with the current best network
         sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
@@ -125,6 +126,11 @@ def main(args):
         print("White: ", sp.winswhite)
         print("Black: ", sp.winsblack)
 
+        selfplay_end = time.time()
+        print("Time elapsed: ", selfplay_end - selfplay_start)
+
+
+        network_training_process = time.time()
         challengerNetApi = nn_api.NetworkAPI()
         challengerNetApi.load_data()  # werte initialisiert
         challengerNetApi.net = currentBestNetApi.net
@@ -135,6 +141,11 @@ def main(args):
         challengerNetApi.save_model()
         # neues netz wurde erstellt -> wird zum challenger netz
 
+        network_training_process_end = time.time()
+        print("Loading + Trainingszeit: ", network_training_process_end - network_training_process)
+
+
+        evaluation = time.time()
         print("Evaluiere neues Netzwerk")
         print(constants.currentBestNetFileName)
         print(constants.challengerNetFileName)
@@ -156,6 +167,9 @@ def main(args):
         print("BLACK hat " + str(constants.challenger_wins) + " wins")
         print("DRAWS " + str(constants.draws))
 
+        evaluation_end = time.time()
+        print("Evaluationszeit: ", evaluation_end - evaluation)
+
         # wenn neues model mehr wins hat als altes -> wird das neue netzwerk
         if constants.challenger_wins > constants.current_player_wins:
             print("Neues netz ist besser!")
@@ -174,7 +188,7 @@ def main(args):
 
     print("Bestes Netz am Ende aller Pipeline Runs: {}".format(constants.currentBestNetFileName))
     end = time.time()
-    print("Time elapsed: ", end - start)
+    print("Gesamtzeit aller Pipelineruns: ", end - start)
 
 
 
