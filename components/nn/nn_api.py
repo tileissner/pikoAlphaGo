@@ -34,7 +34,6 @@ class NetworkAPI:
         win = []
 
         dirname = os.path.dirname(__file__)
-        #with open(os.path.join(dirname, '../../replaybuffer_perfect_game_last3turns.json')) as json_file:
         with open(os.path.join(dirname, '../../replaybuffer.json')) as json_file:
             data = json.load(json_file)
             for line in range(len(data)):
@@ -57,13 +56,9 @@ class NetworkAPI:
         WINNER = np.stack(win, axis=0)
         MOVES = np.array(move)
 
-        # wieder auf 5 ändern an der letzten stelle wenn parents in der predcition enthalten
         ALL_STATES = ALL_STATES.reshape(ALL_STATES.shape[0], constants.input_stack_size,
                                         constants.board_size, constants.board_size)
-        # WINNER = WINNER.reshape(WINNER.shape[0], 5, 5, 1)
-        # MOVES = MOVES.reshape(MOVES.shape[0], 5, 5, 1)
 
-        # %%
         ALL_STATES = np.float64(ALL_STATES)
         print(ALL_STATES.dtype)
 
@@ -79,7 +74,7 @@ class NetworkAPI:
         # Adam vs SGD -> erst mal mit SGD für "einfaches" debugging und für abschließende optimierung dann mit Adam
         # learning rate für sgd liegt zwischen 0.01 und 0.1 bei perfektem game buffer
         # bei random buffer kleiner ~0.0001
-        self.optimizer = optimizers.SGD(learning_rate=0.01)
+        self.optimizer = optimizers.Adam(learning_rate=0.01)
         self.net = nn_model.NeuralNetwork()
         self.net.compile(optimizer=self.optimizer,
                          loss=['mse', 'categorical_crossentropy'])  # l2 regularization evtl hinzufügen
@@ -108,7 +103,6 @@ class NetworkAPI:
             filename = os.path.join(dirname, 'models/model/saved_model.pb')
         else:
             dirname = os.path.dirname(__file__)
-            # filename = os.path.join(dirname, pathToFile + 'saved_model.pb')
             self.net = tf.keras.models.load_model(os.path.join(dirname, pathToFile))
             self.pathToModel = pathToFile
 
@@ -137,10 +131,6 @@ class NetworkAPI:
             inputList.append(elem)
         inputList.append(colorArray)
 
-        # state = np.array(state)
-        # state = np.float64(state)
-        # state = state.reshape(1, 5, 5, 1)
-
         inputList = np.array(inputList)
         inputList = np.float64(inputList) #ein input stack (als array)
         inputList = split_input(inputList)
@@ -149,5 +139,4 @@ class NetworkAPI:
         winner, probs = self.net.predict(inputList)
         winner = winner.item(0)
         probs = probs.flatten().tolist()
-        # print("winner: {} , probs: {}".format(winner, probs))
         return winner, probs

@@ -84,5 +84,4 @@ class NeuralNetwork(Model):
 		policy = self.ph_flatten(policy)
 		policy = self.ph_dense(policy)
 
-		#mal schauen, ob man nicht direkt self.ph_dense(policy) und self.ph_dense2(value) returnen muss
 		return value, policy

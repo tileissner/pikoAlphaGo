@@ -2,7 +2,6 @@ import random
 
 import matplotlib.pyplot as plt
 
-#import components.go.coords as coords
 from components.go import coords
 import utils.readConfigFile as configFile
 from components.go.goEngineApi import createGame
@@ -11,6 +10,10 @@ from components.mcts.search import MonteCarloTreeSearch
 from components.nn.nn_api import NetworkAPI
 from components.player.player import Player
 from utils import constants
+
+'''
+Klasse zum Testen der eigens erstellten Netzewrke gegen den reinzufällig spielenden Agenten
+'''
 
 WHITE, NONE, BLACK = range(-1, 2)
 currentNetFileName = "/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/components/nn/models/model20210309-114913"
@@ -23,7 +26,6 @@ configFile.readConfigFile(constants.configFileLocation)
 
 
 def evaluateNet(board_size, netColor, currentNetFileName, startPlayerColor):
-    pos = createGame(board_size, BLACK)
 
     netWins = 0
     randomPlayerWins = 0
@@ -96,8 +98,6 @@ def startGameEvaluation(pos, netPlayer, randomPlayer):
                 validMoveList = pos.all_legal_moves().tolist()
                 validMoveIndices = [i for i, e in enumerate(validMoveList) if e == 1]
                 randomnumber = random.randint(0, len(validMoveIndices) - 1)
-                # print("Random: ", randomnumber)
-                # print("Random move: ", validMoveIndices[randomnumber])
                 coord = coords.from_flat(validMoveIndices[randomnumber])
                 pos = pos.play_move(coord)
                 print("Random player played: ", coord)
@@ -114,8 +114,6 @@ def startGameEvaluation(pos, netPlayer, randomPlayer):
                 validMoveList = pos.all_legal_moves().tolist()
                 validMoveIndices = [i for i, e in enumerate(validMoveList) if e == 1]
                 randomnumber = random.randint(0, len(validMoveIndices) - 1)
-                # print("Random: ", randomnumber)
-                # print("Random move: ", validMoveIndices[randomnumber])
                 coord = coords.from_flat(validMoveIndices[randomnumber])
                 pos = pos.play_move(coord)
                 print("Random player played: ", coord)
@@ -123,7 +121,6 @@ def startGameEvaluation(pos, netPlayer, randomPlayer):
         mcts.go_game_state = GoGamestate(pos.board, constants.board_size, pos)
         move_counter = move_counter + 1
 
-    # update winner when game is finished for all experiences in this single game
 
     winner = pos.result()
     if winner == netPlayer.color:

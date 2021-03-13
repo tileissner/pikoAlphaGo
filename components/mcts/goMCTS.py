@@ -36,19 +36,6 @@ class GoGamestate(TwoPlayersAbstractGameState):
     @property
     def game_result(self):
 
-        # Check position object
-
-        # # Game not over yet
-        # #TODO: Representation of double pass = 0 or None?
-        # if self.pos.is_game_over():
-        #     return 0
-        #     #return None
-        # elif self.pos.result() == 1:
-        #     return 1
-        # elif self.pos.result() == -1:
-        #     return -1
-        #
-        # return
         if self.pos.is_game_over():
             return self.pos.result()
         else:
@@ -80,12 +67,6 @@ class GoGamestate(TwoPlayersAbstractGameState):
         return GoGamestate(pos.board, self.board_size, pos)
 
     def get_legal_actions(self):
-        # indices = np.where(self.board == 0)
-        # return [
-        #     TicTacToeMove(coords[0], coords[1], self.next_to_move)
-        #     for coords in list(zip(indices[0], indices[1]))
-        # ]
-        # ACHTUNG: gibt array zurueck, das auch die ILLEGALEN moves enthaelt, zb. [0, 1, 0 ...]
         return self.convertPosEngineLegalMovesToOnlyLegalMovesInFlat(self.pos)
 
     def convertPosEngineLegalMovesToOnlyLegalMovesInFlat(self, pos):

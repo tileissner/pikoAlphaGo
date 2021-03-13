@@ -14,7 +14,6 @@ def split_input(state_history):
                     blackmask[j, h] = 1
                 elif state_history[i, j, h] == -1:
                     whitemask[j, h] = 1
-                #print("{} zu {} in schwarz und zu {} in weiß gemacht".format(nplist[i,j,h],blackmask[j,h],whitemask[j,h]))
                 full_input[i] = blackmask
                 full_input[i+constants.state_history_length+1] = whitemask
 

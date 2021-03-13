@@ -6,28 +6,9 @@ from utils import constants
 
 
 def uct_score(parent, child, c_puct):
-    """
-    The score for an action that would transition between the parent and child.
-    """
-    # prior_score = child.prior * math.sqrt(parent.visit_count) / (child.visit_count + 1)
-    # if child.visit_count > 0:
-    #     # The value of the child is from the perspective of the opposing player
-    #     value_score = -child.value()
-    # else:
-    #     value_score = 0
-
-    # children_visit_count = 0
-    # for key, value in parent.children.items():
-    #     children_visit_count += value.visit_count
 
     q_value = child.value()
-    #u_value = c_puct * child.prior * (math.sqrt(parent.visit_count) / (1 + children_visit_count))
-
     u_value = c_puct * child.prior * (math.sqrt(parent.visit_count) / (1 + child.visit_count))
-
-    # q_value = value
-    # # u_value = c_puct * self.p_distr[c.move_from_parent] * math.sqrt((children_visit_count) / (1 + self.n))
-    # u_value = c_puct * self.p_distr[key] * (math.sqrt(self.n) / (1 + children_visit_count))
 
     return q_value + u_value
 
@@ -59,7 +40,6 @@ class Node:
         visit_counts = np.array([child.visit_count for child in self.children.values()])
         actions = [action for action in self.children.keys()]
 
-        # TODO: optimierung
         if temperature == 0:
             action = actions[np.argmax(visit_counts)]
         else:
@@ -111,7 +91,6 @@ class MCTS:
     def __init__(self, go_game_state, net_api, c_puct):
         self.go_game_state = go_game_state
         self.net_api = net_api
-        # self.args = args
         self.c_puct = c_puct
 
     def run(self, net_api, go_game_state, to_play):
@@ -122,10 +101,6 @@ class MCTS:
         winner, action_probs = net_api.getPredictionFromNN(go_game_state.pos.board,
                                                                      self.createHistoryStates(go_game_state),
                                                                      go_game_state.pos.to_play)
-
-        #print("self go game state")
-        #print(self.go_game_state.pos.board)
-        #print("self to play {}".format(self.go_game_state.pos.to_play))
 
         valid_moves = go_game_state.pos.all_legal_moves()
         action_probs = action_probs * valid_moves  # mask invalid moves
@@ -143,16 +118,8 @@ class MCTS:
 
             parent = search_path[-2]
             go_game_state = parent
-            # Now we're at a leaf node and we would like to expand
-            # Players always play from their own perspective
-            #next_go_game_state = self.go_game_state.move(action)  # return GoGamestate
-            next_go_game_state = parent.go_game_state.move(action)  # return GoGamestate
-            # Get the board from the perspective of the other player
+            next_go_game_state = parent.go_game_state.move(action)
 
-            # TODO: müssen wir das machen oder reicht
-            # next_state = self.go_game_state.get_canonical_board(next_state, player=-1)
-
-            # The value of the new state from the perspective of the other player
             winner = next_go_game_state.get_reward_for_player()
 
             if winner is None:
@@ -162,14 +129,11 @@ class MCTS:
                                                                    self.createHistoryStates(
                                                                        next_go_game_state),
                                                                    next_go_game_state.pos.to_play)
-                # valid_moves = next_go_game_state.get_legal_actions()
                 valid_moves = next_go_game_state.pos.all_legal_moves()
                 action_probs = action_probs * valid_moves  # mask invalid moves
                 action_probs /= np.sum(action_probs)
                 node.expand(next_go_game_state, parent.go_game_state.pos.to_play * (-1), action_probs)
-                #node.expand(next_go_game_state, next_go_game_state.pos.to_play, action_probs)
 
-            #TODO: *(-1) korrekt?
             self.backpropagate(search_path, winner, parent.go_game_state.pos.to_play * -1)
 
         return root
@@ -195,7 +159,6 @@ class MCTS:
             state_t_1 = go_game_state.pos.board - go_game_state.pos.board_deltas[0]
         if len(go_game_state.pos.board_deltas) > 1:
             state_t_2 = state_t_1 - go_game_state.pos.board_deltas[1]
-            # state_t_2 = current_node.state.pos-current_node.state.pos.board_deltas[0]-current_node.state.pos.board_deltas[1] #equivalent
         if len(go_game_state.pos.board_deltas) > 2:
             state_t_3 = state_t_2 - go_game_state.pos.board_deltas[2]
 
