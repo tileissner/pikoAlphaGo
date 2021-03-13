@@ -6,6 +6,11 @@ from components.nn.nn_api import NetworkAPI
 from utils import constants
 from split_input import split_input
 
+'''
+Testklasse für das neuronale Netz -> unabhängig vom gesamten Konstrukt
+'''
+
+
 constants.configFileLocation = "/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/config.yaml"
 # read config file and store it in constants.py
 configFile.readConfigFile(constants.configFileLocation)

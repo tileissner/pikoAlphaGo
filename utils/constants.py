@@ -1,4 +1,4 @@
-#value will be overwritten by readConfigFile.py
+#values will be overwritten by readConfigFile.py
 configFileLocation = ''
 
 board_size = None
@@ -7,7 +7,6 @@ thread_count = None
 games_per_thread = None
 games_per_eval_thread = None
 
-Q = None
 mcts_simulations = None
 amount_evaluator_iterations = None
 state_history_length = None

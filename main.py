@@ -25,7 +25,6 @@ class selfplay:
         self.second = 0
 
     def startSelfPlayGame(self, file_name, board_size, color):
-        # selfplay test with hardcoded beginner (black)
         for i in range(0, constants.games_per_thread):
             trainingSet = goApi.selfPlay(board_size, color)
             self.trainingSetList.append(trainingSet)
@@ -36,18 +35,6 @@ class selfplay:
                 self.winswhite += 1
             color = color * (-1)
             print("{}. game von prozess fertig gespielt".format(i + 1))
-        #
-        # with open(file_name, 'a', 1) as f:
-        #     index = 0
-        #     for t in trainingSet:
-        #         # f.write(np.array2string(t.state) + t.probabilities + t.winner + t.color + os.linesep)
-        #         # t.getAsJSON()
-        #         # f.write(np.array2string(t.state) + str(t.winner) + str(t.color) + os.linesep)
-        #         if index == (len(trainingSet) - 1):
-        #             f.write(t.getAsJSON(True) + "\n")
-        #         else:
-        #             f.write(t.getAsJSON(False) + "\n")
-        #         index += 1
 
     def startSelfPlay(self, thread_count, board_size, color):
         file_name = "replaybuffer.json"
@@ -60,14 +47,6 @@ class selfplay:
         for t in threads:
             t.join()
         # hier wartet er auf alle threads bis sie feritg sind
-
-        # # check what the heck the file had
-        # uniq_lines = set()
-        # with open('replaybuffer.json', 'r') as f:
-        #     for l in f:
-        #         uniq_lines.add(l)
-        # # for u in uniq_lines:
-        # # sys.stdout.write(u)
 
     def writeTrainingSetsToJsonBuffer(self, iteration):
         listIndex = 0
@@ -83,14 +62,6 @@ class selfplay:
                         f.write(writeHistoryStates(trainingSet, rowIndex, True))
                     else:
                         f.write(writeHistoryStates(trainingSet, rowIndex, False))
-                        # if rowIndex == 0:
-                        #     f.write(writeHistoryStates(trainingSet, 0, False))
-                        # if rowIndex == 1:
-                        #     f.write(writeHistoryStates(trainingSet, 1, False))
-                        # if rowIndex == 2:
-                        #     f.write(writeHistoryStates(trainingSet, 2, False))
-                        # if rowIndex == 3:
-                        #     f.write(writeHistoryStates(trainingSet, 3, False))
                     rowIndex += 1
                 listIndex += 1
             f.write("]")
@@ -145,46 +116,43 @@ def main(args):
         currentBestNetApi.model_load(constants.currentBestNetFileName)
 
         print("start self-play with old current best network {}".format(constants.currentBestNetFileName))
+        selfplay_start = time.time()
         sp = selfplay()
         # starts the self play games with the current best network
         sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
         # wait for finish of threads
         sp.writeTrainingSetsToJsonBuffer(i)
 
-        # now evaluation comes into play -> play as good as possible
-        constants.competitive = 1
-
-        # warte auf threads
-        # sp.startSelfPlay(constants.thread_count, constants.board_size, BLACK)
-
-        # append eckige klammern, damit gültiges json
-        # with open("replaybuffer.json", 'a') as f:
-        #     f.write("]")
-
         print("White: ", sp.winswhite)
         print("Black: ", sp.winsblack)
 
+        selfplay_end = time.time()
+        print("Time elapsed: ", selfplay_end - selfplay_start)
+
+
+        network_training_process = time.time()
         challengerNetApi = nn_api.NetworkAPI()
         challengerNetApi.load_data()  # werte initialisiert
         challengerNetApi.net = currentBestNetApi.net
 
-        # challengerNetApi.create_net()
         print("Trainiere neues Netzwerk")
         challengerNetApi.train_model(challengerNetApi.ALL_STATES, [challengerNetApi.WINNER, challengerNetApi.MOVES])
 
         challengerNetApi.save_model()
         # neues netz wurde erstellt -> wird zum challenger netz
 
+        network_training_process_end = time.time()
+        print("Loading + Trainingszeit: ", network_training_process_end - network_training_process)
+
+
+        evaluation = time.time()
         print("Evaluiere neues Netzwerk")
         print(constants.currentBestNetFileName)
         print(constants.challengerNetFileName)
 
-        # reset competitive for self play exploration
-        constants.competitive = 0
-
         threads = []
         thread_counter = 0
-        for i in range(0, constants.thread_count):
+        for j in range(0, constants.thread_count):
             # target = name for method that must be executed in thread
             threads.append(
                 threading.Thread(target=goApi.evaluateNet, args=(
@@ -196,18 +164,19 @@ def main(args):
             t.join()
 
         print("WHITE hat " + str(constants.current_player_wins) + " wins")
-        # print(currentPlayer.color, " hat ", currentPlayerWins, " wins")
         print("BLACK hat " + str(constants.challenger_wins) + " wins")
         print("DRAWS " + str(constants.draws))
 
-        # wenn 55% -> neues model
-        #if constants.challenger_wins / (constants.thread_count * constants.games_per_eval_thread) > constants.improvement_percentage_threshold:
+        evaluation_end = time.time()
+        print("Evaluationszeit: ", evaluation_end - evaluation)
+
+        # wenn neues model mehr wins hat als altes -> wird das neue netzwerk
         if constants.challenger_wins > constants.current_player_wins:
-            print("neues netz ist besser!")
+            print("Neues netz ist besser!")
             # überschreibe das current best network mit dem neuen challenger network
             constants.currentBestNetFileName = constants.challengerNetFileName
         else:
-            print("neues netz bringt keine verbesserung")
+            print("Neues netz bringt keine verbesserung")
 
         print("Neues netz: " + constants.currentBestNetFileName)
         constants.challenger_wins = 0
@@ -219,10 +188,8 @@ def main(args):
 
     print("Bestes Netz am Ende aller Pipeline Runs: {}".format(constants.currentBestNetFileName))
     end = time.time()
-    print("Time elapsed: ", end - start)
+    print("Gesamtzeit aller Pipelineruns: ", end - start)
 
-
-# startSelfPlay(constants.thread_count, constants.board_size, BLACK)
 
 
 def writeHistoryStates(trainingSet, index, lastElement):
