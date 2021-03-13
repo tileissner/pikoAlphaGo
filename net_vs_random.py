@@ -2,7 +2,8 @@ import random
 
 import matplotlib.pyplot as plt
 
-import components.go.coords as coords
+#import components.go.coords as coords
+from components.go import coords
 import utils.readConfigFile as configFile
 from components.go.goEngineApi import createGame
 from components.mcts.goMCTS import GoGamestate
@@ -12,7 +13,7 @@ from components.player.player import Player
 from utils import constants
 
 WHITE, NONE, BLACK = range(-1, 2)
-currentNetFileName = "/home/marcel/Downloads/model20210303-170920firstrun"
+currentNetFileName = "/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/components/nn/models/model20210309-114913"
 nn_api = NetworkAPI()
 nn_api.model_load(currentNetFileName)
 
@@ -37,7 +38,7 @@ def evaluateNet(board_size, netColor, currentNetFileName, startPlayerColor):
         # Zufällige Auswahl wer beginnt
         print("erstelle neues Spiel, Beginner " + str(startPlayerColor))
         pos = createGame(board_size, startPlayerColor)
-        startPlayerColor = startPlayerColor * (-1)
+        startPlayerColor = startPlayerColor * (-1) #TODO hier toggle für swap
         winner, score = startGameEvaluation(pos, netPlayer, randomPlayer)
         if winner is not None:
             print(

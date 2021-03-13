@@ -3,7 +3,8 @@ import threading
 
 import numpy as np
 
-import components.go.coords as coords
+#import components.go.coords as coords
+from components.go import coords
 import components.go.go as go
 from components.go.trainingSet import TrainingSet
 
@@ -19,13 +20,11 @@ WHITE, NONE, BLACK = range(-1, 2)
 
 def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName, thread_counter):
 
-
-    currentPlayerWins = 0
-    challengerPlayerWins = 0
-
     # NEVER CHANGE COLOR
     currentPlayer = Player(WHITE, currentNetFileName)
+    print("erstelle current player (WHITE) mit model " + str(currentNetFileName))
     challengerPlayer = Player(BLACK, challengerNetFileName)
+    print("erstelle challenger player (BLACK) mit model " + str(challengerNetFileName))
 
     for _ in range(0, constants.games_per_eval_thread):
         pos = createGame(board_size, color)
@@ -35,11 +34,12 @@ def evaluateNet(board_size, color, currentNetFileName, challengerNetFileName, th
         winner = startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter)
         if winner == currentPlayer:
             constants.current_player_wins += 1
-        else:
+        elif winner == challengerPlayer:
             constants.challenger_wins += 1
+        else:
+            constants.draws += 1
         color = color * (-1)
 
-    return currentPlayerWins, challengerPlayerWins
 
 
 
@@ -305,7 +305,7 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter):
             # neue mcts
             root = currentPlayer.mcts.search_mcts_function()
 
-            action = root.select_action(temperature=0.01)
+            action = root.select_action(temperature=0.)
             pos = pos.play_move(coords.from_flat(action))
             synchronized_go_game_state = GoGamestate(pos.board, constants.board_size, pos)
             currentPlayer.mcts.go_game_state = synchronized_go_game_state
@@ -332,7 +332,7 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter):
             # neue mcts
             root = challengerPlayer.mcts.search_mcts_function()
 
-            action = root.select_action(temperature=0.01)
+            action = root.select_action(temperature=0.)
             pos = pos.play_move(coords.from_flat(action))
             synchronized_go_game_state = GoGamestate(pos.board, constants.board_size, pos)
             currentPlayer.mcts.go_game_state = synchronized_go_game_state
@@ -358,6 +358,8 @@ def startGameEvaluation(pos, currentPlayer, challengerPlayer, thread_counter):
     elif winner == challengerPlayer.color:
         print(str(challengerPlayer.color) + " has won")
         return challengerPlayer
+    else:
+        return None
     # print(pos.result())
     # print(pos.result_string())
     # replayBuffer.addToReplayBuffer(trainingSet)

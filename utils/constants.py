@@ -17,11 +17,8 @@ improvement_percentage_threshold = None
 input_stack_size = None
 custom_batch_size = None
 c_puct = None
-
 epochs = None
-
 temperature = None
-competitive = None
 
 input_states = None
 
@@ -29,5 +26,9 @@ currentBestNetFileName = "models/modeluntrained"
 #currentBestNetFileName = "models/model"
 challengerNetFileName = ""
 
+path_to_model_to_load = None
+use_old_replay_buffer = None
+
 challenger_wins = 0
 current_player_wins = 0
+draws = 0

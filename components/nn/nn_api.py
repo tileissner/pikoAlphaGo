@@ -90,21 +90,9 @@ class NetworkAPI:
 
 
     def train_model(self, features, labels):
-        EPOCHS = constants.epochs
-
-        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        checkpoint_path = "training_1/{epoch:04d}-cp.ckpt"
-        # checkpoint_dir = os.path.dirname(checkpoint_path)
-
-        # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
-        hist_callback = tf.keras.callbacks.LambdaCallback(on_epoch_end=self.log_weights(EPOCHS), log_dir=log_dir)
-        # neue funktion hier -> checkpoints erstellen
-        cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True,
-                                                         save_freq="epoch", period=1, verbose=1)
-        self.net.fit(features, labels, epochs=EPOCHS, batch_size=constants.custom_batch_size, callbacks=[hist_callback, cp_callback])
+        self.net.fit(features, labels, epochs=constants.epochs, batch_size=constants.custom_batch_size)
 
     def save_model(self, filename=None):
-        ############hier decouplen damit wir auch ohne training ein netz speichern können direkt nach initalisierung
         dirname = os.path.dirname(__file__)
         if filename is None:
             self.pathToModel = 'models/model' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -113,14 +101,6 @@ class NetworkAPI:
         constants.challengerNetFileName = self.pathToModel
         self.net.save(os.path.join(dirname, self.pathToModel))
         return self.pathToModel
-
-    # %%
-    def log_weights(self, epochs):
-        writer = tf.summary.create_file_writer("/tmp/mylogs/eager")
-
-        with writer.as_default():
-            for tf_var in self.net.trainable_weights:
-                tf.summary.histogram(tf_var.name, tf_var.numpy(), step=epochs)
 
     def model_load(self, pathToFile=None):
         if pathToFile is None:

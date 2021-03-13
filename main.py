@@ -72,7 +72,7 @@ class selfplay:
     def writeTrainingSetsToJsonBuffer(self, iteration):
         listIndex = 0
         with open('replaybuffer.json', 'a', 1) as f:
-            if iteration == 0:
+            if iteration == 0 and constants.use_old_replay_buffer is False:
                 f.write("[")
             # 1 traininget = 1 entire game
             for trainingSet in self.trainingSetList:
@@ -106,30 +106,33 @@ def main(args):
         constants.configFileLocation = "config.yaml"
     # read config file and store it in constants.py
     configFile.readConfigFile(constants.configFileLocation)
-    if os.path.exists("replaybuffer.json"):
-        os.remove("replaybuffer.json")
 
-    sys.setrecursionlimit(100000)
-    print("recursion limit: ", sys.getrecursionlimit())
+    if os.path.exists("replaybuffer.json") and constants.use_old_replay_buffer is False:
+        os.remove("replaybuffer.json")
 
     # with open("replaybuffer.json", 'a') as f:
     #     f.write("[")
 
     WHITE, NONE, BLACK = range(-1, 2)
 
-    # untrainiertes netz laden
-    untrained_net = nn_api.NetworkAPI()
-    # hack, damit wir subclassed model speichern können
-    # man muss subclassed model nämlich erst auf irgendeine art & weise verwenden
-    # die input_shape muss hier auch manuell gesetzt werden, da wir die daten noch nicht laden, da noch kein replaybuffer exisitiert
-    # diese input_shape wird allerdings erst übernommen wenn das model genutzt wurde
-    # wir lassen also predicten mit dummy variablen damit die input_shape ans netz übergeben wird
-    # sobald diese shape übergeben wurde kann das untrainierte netz gespeichert werden
-    initial_input_shape = (1, constants.input_stack_size, constants.board_size, constants.board_size)
-    untrained_net.create_net(initial_input_shape)
-    dummy_state = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
-    winner_test, probs_test = untrained_net.getPredictionFromNN(dummy_state, [], BLACK)
-    constants.currentBestNetFileName = untrained_net.save_model("untrained")
+
+    if constants.path_to_model_to_load == 'None':
+        # untrainiertes netz laden
+        untrained_net = nn_api.NetworkAPI()
+        # hack, damit wir subclassed model speichern können
+        # man muss subclassed model nämlich erst auf irgendeine art & weise verwenden
+        # die input_shape muss hier auch manuell gesetzt werden, da wir die daten noch nicht laden, da noch kein replaybuffer exisitiert
+        # diese input_shape wird allerdings erst übernommen wenn das model genutzt wurde
+        # wir lassen also predicten mit dummy variablen damit die input_shape ans netz übergeben wird
+        # sobald diese shape übergeben wurde kann das untrainierte netz gespeichert werden
+        initial_input_shape = (1, constants.input_stack_size, constants.board_size, constants.board_size)
+        untrained_net.create_net(initial_input_shape)
+        dummy_state = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+        winner_test, probs_test = untrained_net.getPredictionFromNN(dummy_state, [], BLACK)
+        constants.currentBestNetFileName = untrained_net.save_model("untrained")
+    else:
+        print("Fange nicht von vorne an sonern lade bisheriges Model " + constants.path_to_model_to_load)
+        constants.currentBestNetFileName = constants.path_to_model_to_load
 
     # zum laden eines bisher existierenden netzes anstelle von beginn bei 0
     # constants.currentBestNetFileName = "models/model20210205-154629"
@@ -195,6 +198,7 @@ def main(args):
         print("WHITE hat " + str(constants.current_player_wins) + " wins")
         # print(currentPlayer.color, " hat ", currentPlayerWins, " wins")
         print("BLACK hat " + str(constants.challenger_wins) + " wins")
+        print("DRAWS " + str(constants.draws))
 
         # wenn 55% -> neues model
         #if constants.challenger_wins / (constants.thread_count * constants.games_per_eval_thread) > constants.improvement_percentage_threshold:
@@ -208,6 +212,7 @@ def main(args):
         print("Neues netz: " + constants.currentBestNetFileName)
         constants.challenger_wins = 0
         constants.current_player_wins = 0
+        constants.draws = 0
         removeLastCharacter('replaybuffer.json')
 
         # wenn neues netz besser -> kopiere weights des neuen netzes
