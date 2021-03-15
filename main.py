@@ -9,6 +9,7 @@ import components.go.goEngineApi as goApi
 import components.nn.nn_api as nn_api
 import utils.constants as constants
 import utils.readConfigFile as configFile
+import tensorflow as tf
 
 WHITE, NONE, BLACK = range(-1, 2)
 
@@ -77,6 +78,8 @@ def main(args):
         constants.configFileLocation = "config.yaml"
     # read config file and store it in constants.py
     configFile.readConfigFile(constants.configFileLocation)
+
+    tf.config.list_physical_devices('GPU')
 
     if os.path.exists("replaybuffer.json") and constants.use_old_replay_buffer is False:
         os.remove("replaybuffer.json")
