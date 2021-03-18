@@ -16,7 +16,7 @@ Klasse zum Testen der eigens erstellten Netzewrke gegen den reinzufällig spiele
 '''
 
 WHITE, NONE, BLACK = range(-1, 2)
-currentNetFileName = "/home/tim/Documents/uni/WS20/alphago/pikoAlphaGo/components/nn/models/model20210309-114913"
+currentNetFileName = "/home/marcel/Downloads/model20210311-204904"
 nn_api = NetworkAPI()
 nn_api.model_load(currentNetFileName)
 
@@ -93,6 +93,8 @@ def startGameEvaluation(pos, netPlayer, randomPlayer):
                 root = mcts.search_mcts_function()
                 action = root.select_action(temperature=0)
                 pos = pos.play_move(coords.from_flat(action))
+                print("Net played: ", action)
+                print(pos)
                 color = BLACK
             else:
                 validMoveList = pos.all_legal_moves().tolist()
@@ -100,7 +102,8 @@ def startGameEvaluation(pos, netPlayer, randomPlayer):
                 randomnumber = random.randint(0, len(validMoveIndices) - 1)
                 coord = coords.from_flat(validMoveIndices[randomnumber])
                 pos = pos.play_move(coord)
-                print("Random player played: ", coord)
+                print("Random player played: ", coords.to_flat(coord))
+                print(pos)
                 color = BLACK
 
         elif color == BLACK:
@@ -109,6 +112,7 @@ def startGameEvaluation(pos, netPlayer, randomPlayer):
                 action = root.select_action(temperature=0)
                 pos = pos.play_move(coords.from_flat(action))
                 print("Net played: ", action)
+                print(pos)
                 color = WHITE
             else:
                 validMoveList = pos.all_legal_moves().tolist()
@@ -117,7 +121,9 @@ def startGameEvaluation(pos, netPlayer, randomPlayer):
                 coord = coords.from_flat(validMoveIndices[randomnumber])
                 pos = pos.play_move(coord)
                 print("Random player played: ", coord)
+                print(pos)
                 color = WHITE
+
         mcts.go_game_state = GoGamestate(pos.board, constants.board_size, pos)
         move_counter = move_counter + 1
 

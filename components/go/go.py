@@ -332,7 +332,8 @@ class Position():
     def __str__(self, colors=True):
         if colors:
             pretty_print_map = {
-                WHITE: '\x1b[0;31;47mO',
+                #WHITE: '\x1b[0;31;30mO',
+                WHITE: '\x1b[0;30;47mO',
                 EMPTY: '\x1b[0;31;43m.',
                 BLACK: '\x1b[0;31;40mX',
                 FILL: '#',
